@@ -1,12 +1,11 @@
 hemibrain_to_JRC2018U_nrrd <- function(cell_type, savefolder = "data", plot3D = TRUE){
-  
-  #get all FC1 neurons
+  #get hemibrain neuron
   hbn.info <- neuprint_search(sprintf("type:%s.*",cell_type))
 
   #get the neuron skeletons
   hbn_skel = neuprint_read_neurons(hbn.info$bodyid)
   
-  #FC1A
+  #transform hemibrain neuron to template space
   hbn.jrc2018f = xform_brain(hbn_skel*8/1000, reference="JRC2018F", sample="JRCFIB2018F")
   hbn.jrc2018u = xform_brain(hbn.jrc2018f, reference='JRC2018U', sample='JRC2018F')
   
@@ -25,5 +24,46 @@ hemibrain_to_JRC2018U_nrrd <- function(cell_type, savefolder = "data", plot3D = 
   #save the hbn to a .nrrd file
   dir.create(savefolder)
   write.nrrd(I, file.path(savefolder, sprintf("%s_JRC2018.nrrd",cell_type)))
+}
+
+#this doesn't work
+nrrd_to_hemibrain <- function (file, cell_type){
+  #read in nrrd file (i'm just assuming that this doesn't have to be transformed)
+  neuron <- as.neuron(read.nrrd(sprintf('%s',file())))
   
+  #get hemibrain neuron and skeletonize
+  hbn <- neuprint_search(sprintf("type:%s",cell_type))
+  hbn_skel <- neuprint_read_neurons(hbn.$bodyid)
+  
+  #transform from hemibrain to template space (JRC2018U)
+  hbn.jrc2018f = xform_brain(hbn_skel*8/1000, reference="JRC2018F", sample="FRCIB2018F")
+  hbn.jrc2018u = xform_brain(hbn_skel*8/1000, reference="JRC2018U", sample="JRC2018F")
+  
+  #plot nrrd and hemibrain neuron
+  noopen3d()
+  plot3d(neuron())
+  plot3d(hbn.jrc2018u, lwd=3, col='black',WithNodes=FALSE,some=FALSE)
+  plot3d(JRC2018U)
+  
+}
+
+#this works
+neuron_to_hemibrain <- function(trace, cell_type){
+  # 2: read a saved swc file (read.neuron) and plot with the right hemibrain neuron and template brain (let's just assume read.nrrd)
+  #read in swc file
+  neuronTracing <- read.neuron(sprintf('%s', trace), class="neuron")
+  
+  #get hemibrain neuron
+  hbn.info <- neuprint_search(sprintf("type:%s.*",cell_type))
+  #get the neuron skeletons
+  hbn_skel = neuprint_read_neurons(hbn.info$bodyid)
+  #transform hemibrain neuron into correct template space
+  hbn.jrc2018f = xform_brain(hbn_skel*8/1000, reference="JRC2018F", sample="JRCFIB2018F")
+  hbn.jrc2018u = xform_brain(hbn.jrc2018f, reference='JRC2018U', sample='JRC2018F')
+  
+  #plot .swc file and hemibrain neuron in correct template space
+  nopen3d()
+  plot3d(neuronTracing,lwd=3,col='green',WithNodes=FALSE)
+  plot3d(hbn.jrc2018u, lwd=3, col='black',WithNodes=FALSE,some=FALSE)
+  plot3d(JRC2018U)
 }
