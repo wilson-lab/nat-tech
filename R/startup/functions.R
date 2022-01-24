@@ -29,7 +29,7 @@ hemibrain_to_JRC2018U_nrrd <- function(cell_type, savefolder = "data", plot3D = 
 #this doesn't work
 nrrd_to_hemibrain <- function (file, cell_type){
   #read in nrrd file (i'm just assuming that this doesn't have to be transformed)
-  neuron <- as.neuron(read.nrrd(sprintf('%s',file())))
+  neuron <- as.neuron(read.nrrd(sprintf('%s',file)))
   
   #get hemibrain neuron and skeletonize
   hbn <- neuprint_search(sprintf("type:%s",cell_type))
@@ -40,7 +40,7 @@ nrrd_to_hemibrain <- function (file, cell_type){
   hbn.jrc2018u = xform_brain(hbn_skel*8/1000, reference="JRC2018U", sample="JRC2018F")
   
   #plot nrrd and hemibrain neuron
-  noopen3d()
+  nopen3d()
   plot3d(neuron())
   plot3d(hbn.jrc2018u, lwd=3, col='black',WithNodes=FALSE,some=FALSE)
   plot3d(JRC2018U)
