@@ -68,3 +68,31 @@ neuron_to_hemibrain <- function(trace, cell_type){
   plot3d(hbn.jrc2018u, lwd=3, col='black',WithNodes=FALSE,some=FALSE)
   plot3d(JRC2018U)
 }
+
+hemibrain_to_nrrd <- function(cell_type, ref="JRC2018U", savefolder = "data", plot3D = TRUE){
+  #get hemibrain neuron
+  hbn.info <- neuprint_search(sprintf("type:%s.*",cell_type))
+  
+  #get the neuron skeletons
+  hbn_skel = neuprint_read_neurons(hbn.info$bodyid)
+  
+  #transform hemibrain neuron to template space
+  hbn.reg = xform_brain(hbn_skel*8/1000, reference=ref, sample="JRCFIB2018F")
+  
+  # make im3d
+  x <- get(ref)
+  points=xyzmatrix(hbn.reg)
+  I=as.im3d(points,x)
+  
+  if (plot3D){
+    nopen3d()
+    #plot FC1 neurons with different colors
+    plot3d(hbn.reg,lwd=3,col='black',WithNodes=FALSE,soma=FALSE)
+    plot3d(x)
+    points3d(points,col="green")
+  }
+  
+  #save the hbn to a .nrrd file
+  dir.create(savefolder)
+  write.nrrd(I, file.path(savefolder, sprintf("%s_%s.nrrd",cell_type,ref)))
+}

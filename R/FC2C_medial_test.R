@@ -8,3 +8,6 @@ nrrd_to_hemibrain("/Users/WilsonLab/Desktop/Registration/Reformatted/FC2Cmedial/
 
 # 2: read a saved swc file (read.neuron) and plot with the right hemibrain neuron and template brain (let's just assume read.nrrd)
 neuron_to_hemibrain("/Users/WilsonLab/Desktop/SNTsnapshots/fc2c_test-000.swc","FC2C")
+
+#test function to save a hemibrain neuron to any template space
+hemibrain_to_nrrd("FC2C","JRC2018F")
