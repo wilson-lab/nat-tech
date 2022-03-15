@@ -3,6 +3,9 @@ library(natverse)
 library(neuprintr)
 library(nat.templatebrains)
 library(nat.jrcbrains)
+library(fafbseg)
+library(elmr)
+
 register_saalfeldlab_registrations()
 
 #establish neuprint database

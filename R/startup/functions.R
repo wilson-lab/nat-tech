@@ -1,4 +1,4 @@
-hemibrain_to_JRC2018U_nrrd <- function(cell_type, reference="JRC2018F", savefolder = "data", plot3D = TRUE){
+hemibrain_to_JRC2018U_nrrd <- function(cell_type = "F8.*", reference="JRC2018F", savefolder = "data", plot3D = TRUE){
   #get hemibrain neuron
   hbn.info <- neuprint_search(sprintf("type:%s.*",cell_type))
 
@@ -37,7 +37,7 @@ nrrd_to_hemibrain <- function (file, cell_type){
   hbn_skel <- neuprint_read_neurons(hbn.$bodyid)
   
   #transform from hemibrain to template space (JRC2018U)
-  hbn.jrc2018f = xform_brain(hbn_skel*8/1000, reference="JRC2018F", sample="FRCIB2018F")
+  hbn.jrc2018f = xform_brain(hbn_skel*8/1000, reference="JRC2018F", sample="JFRCIB2018F")
   hbn.jrc2018u = xform_brain(hbn_skel*8/1000, reference="JRC2018U", sample="JRC2018F")
   
   #plot nrrd and hemibrain neuron
@@ -75,6 +75,7 @@ hemibrain_to_nrrd <- function(cell_type, ref="JRC2018U", savefolder = "data", pl
   
   #get the neuron skeletons
   hbn_skel = neuprint_read_neurons(hbn.info$bodyid)
+  class(hbn_skel)
   
   #transform hemibrain neuron to template space
   hbn.reg = xform_brain(hbn_skel*8/1000, reference=ref, sample="JRCFIB2018F")
@@ -93,6 +94,27 @@ hemibrain_to_nrrd <- function(cell_type, ref="JRC2018U", savefolder = "data", pl
   }
   
   #save the hbn to a .nrrd file
+  dir.create(savefolder)
+  write.nrrd(I, file.path(savefolder, sprintf("%s_%s.nrrd",cell_type,ref)))
+}
+
+#create a color mip
+
+
+# write flywire neuron to nrrd, sample = "FAFB14", xyzmatrix
+flywire_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder = "data", plot3D =TRUE){
+  #read in flywire ID
+  flywire.neuron <- read_cloudvolume_meshes(flywire_id)
+  
+  #transform neuron into the correct template space
+  flywire_reg = xform_brain(flywire.neuron*8/1000, reference=ref, sample="FAFB14")
+  
+  # make im3d
+  x <- get(ref)
+  points=xyzmatrix(flywire_reg)
+  I=as.im3d(points,x)
+  
+  #save the flywire neuron as a .nrrd file
   dir.create(savefolder)
   write.nrrd(I, file.path(savefolder, sprintf("%s_%s.nrrd",cell_type,ref)))
 }
