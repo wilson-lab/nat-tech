@@ -13,4 +13,4 @@ neuron_to_hemibrain("/Users/WilsonLab/Desktop/SNTsnapshots/fc2c_test-000.swc","F
 hemibrain_to_nrrd("FC2C","JRC2018F")
 
 #turn flywire neuron into a nrrd file
-flywire_to_nrrd("720575940629507446","idk")
+flywire_to_nrrd("720575940619059120","idk")
