@@ -104,14 +104,22 @@ hemibrain_to_nrrd <- function(cell_type, ref="JRC2018U", savefolder = "data", pl
 # write flywire neuron to nrrd, sample = "FAFB14", xyzmatrix
 flywire_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder = "data", plot3D =TRUE){
   #read in flywire ID
-  flywire.neuron <- read_cloudvolume_meshes(flywire_id)
+  flywire_neuron <- read_cloudvolume_meshes(flywire_id)
   
   #transform neuron into the correct template space
-  flywire_reg = xform_brain(flywire.neuron*8/1000, reference=ref, sample="FAFB14")
+  flywire.reg = xform_brain(flywire_neuron, reference=ref, sample="FAFB14")
+  
+  #plot transformed neuron with template brain
+  if(plot3d){
+    nopen3d()
+    #plot neuron)
+    plot3d(flywire.reg,lwd=3,col='black',WithNodes=FALSE,soma=FALSE)
+    plot(get(ref))
+  }
   
   # make im3d
   x <- get(ref)
-  points=xyzmatrix(flywire_reg)
+  points=xyzmatrix(flywire.reg)
   I=as.im3d(points,x)
   
   #save the flywire neuron as a .nrrd file
