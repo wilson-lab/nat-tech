@@ -75,7 +75,7 @@ hemibrain_to_nrrd <- function(cell_type, ref="JRC2018U", savefolder = "data", pl
 
 
 # write flywire neuron to nrrd, sample = "FAFB14", xyzmatrix
-flywire_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder = "data", plot3D =TRUE){
+flywireid_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder = "data", plot3D =TRUE){
   #read in flywire ID
   flywire_neuron <- read_cloudvolume_meshes(flywire_id)
   
