@@ -14,3 +14,13 @@ hemibrain_to_nrrd("FC2C","JRC2018F")
 
 #turn flywire neuron into a nrrd file
 flywireid_to_nrrd("720575940619059120","idk")
+
+#get all FB neurons
+hemibrain_to_nrrd("FB8A")
+hemibrain_to_nrrd("FB8B")
+hemibrain_to_nrrd("FB8C")
+hemibrain_to_nrrd("FB8D")
+hemibrain_to_nrrd("FB8E")
+hemibrain_to_nrrd("FB8F")
+hemibrain_to_nrrd("FB8G")
+hemibrain_to_nrrd("FB8H")

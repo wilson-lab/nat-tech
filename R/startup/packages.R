@@ -5,6 +5,9 @@ library(nat.templatebrains)
 library(nat.jrcbrains)
 library(fafbseg)
 library(elmr)
+library(neuronbridger)
+library(lubridate)
+library(filesstrings)
 
 register_saalfeldlab_registrations()
 

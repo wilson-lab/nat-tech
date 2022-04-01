@@ -99,3 +99,56 @@ flywireid_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder 
   dir.create(savefolder)
   write.nrrd(I, file.path(savefolder, sprintf("%s_%s.nrrd",cell_type,ref)))
 }
+
+#HAVE TO FIX
+#take the full file name and returns just the cell type
+get_cell_type <- function(file_name){
+  name_arr = strsplit(file_name, "_")
+  return(name_arr[[1]][2])
+}
+
+#HAVE TO FIX
+#take the full file name, return the genotype formatted "AD_GDBD"
+get_genotype <- function(file_name){
+  name_arr = strsplit(file_name, "_")
+  return(sprintf("%s_%s",name_arr[[1]][3],name_arr[[1]][4]))
+}
+
+#HAVE TO FIX
+#returns the name of the folder where the .nrrd files are save in the Registration folder (should be in the format of AD_GDBD_num)
+get_image_folder <- function(file_name){
+  #removes the .tif from the number at the end of the file name
+  no_tif = strsplit(file_name,"[.]")
+  
+  #splits up the name string based on underscore
+  name_arr = strsplit(no_tif[[1]][1],"_")
+  
+  #returns the folder name in the format "AD_GDBD_num"
+  return(sprintf("%s_%s_%s",name_arr[[1]][3],name_arr[[1]][4],name_arr[[1]][5]))
+}
+
+#correctly formats the date and time based on how the FIJI plugin CMTK gui formats it
+time_date_format <- function(){
+  time_date = as.character(ymd_hms(Sys.time()))
+  i = strsplit(time_date, " ")
+  time = strsplit(i[[1]][2], ":")
+  return(sprintf("%s_%s.%s.%s",i[[1]][1],time[[1]][1],time[[1]][2],time[[1]][3]))
+}
+get_registration_brain <- function(file_name){
+  
+}
+#need a function to make the cmtkreg to run in terminal 
+#only works for a very specific file name date_celltype_AD_GDBD_num
+write_cmtkreg <- function(file_name){
+  folder = get_image_folder(file_name)
+  date_time = time_date_format()
+  
+  #creates the array of the commands for the cmtk registration
+  array = c("#!/bin/bash", 
+            sprintf("# %s",date_time), 
+            "cd \"/User/WilsonLab/Desktop/Registration\"", 
+            sprintf("\"/Applications/Fiji.app/bin/cmtk/munger\" -b \"/Applications/Fiji.app/Fiji.app/bin/cmtk\" -a -w -r 0102 -X 26 -C 8 -G 80 -R 4 -A \'--accuracy 0.4\' -W \'--accuracy 0.4\' -s \"Refbrain/JRC2018_UNISEX_38um_iso_16bit.nrrd\" images/%s", folder)
+  )
+  writeLines(c,con=sprintf("munger_%s.command", date_time))
+  return(sprintf("munger_%s.command", date_time))
+}
