@@ -1,6 +1,8 @@
 path = getArgument();
 name = File.getName(path);
 
+if(name=="") exit ("No argument");
+
 //path = "/Users/wilsonlab/Desktop/Registration/Reformatted/R38D01AD_R70H05GDBD_1/JRC2018U_vDeltaA_R38D01AD_R70H05GDBD_02_warp_m0g80c8e1e-1x26r4.nrrd";
 //name = File.getName(path);
 
