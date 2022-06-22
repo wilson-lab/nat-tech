@@ -1,21 +1,17 @@
-source("R/startup/functions.R")
-source("R/startup/packages.R")
+setwd("/Users/wilsonlab/Documents/GitHub/nat-tech/R/")
+source("startup/functions.R")
+source("startup/packages.R")
 
-#' @title Get unprocessed confocal images and register them to a template brain
-#' @description 
-#' @
-#' format of the file names date_celltype_templatespace_AD_DBD_num (have to think about gal4s)
+# run R script at specified time 
+# runs at 8pm Mon-Fri (supposedly)
+# 0 20 * * 1-5  Rscript /Users/wilsonlab/Documents/GitHub/nat-tech/R/pipeline.R
 
-# crontab - e
-# [specify time] Rscript /my/file/nat-tech.R
-# link: https://www.hostinger.com/tutorials/cron-job
-
-# 1 -- find if there is a unprocessed file in your reg folder
-#i'm gonna cut corners and just make a folder called "unprocessed"
-#at the end of running registration move the file to procesed folder using -  move_files(files, destinations, overwrite = FALSE)
+# 1 -- find if there is a unprocessed file in the unprocessed folder on the server
+# at the end of running registration move the file to processed folder using -  move_files(files, destinations, overwrite = FALSE)
 raw_data = "/Volumes/Neurobio/Wilson Lab/Emily/unprocessed"
 processed_data = c(file.path(raw_data,"processed"), file.path(raw_data,"Registration"))
-macro = "macros/create_registration_images.ijm"
+macro1 = "macros/create_registration_images.ijm"
+macro2 = "macros/create_composite.ijm"
 to_register <- list.files(raw_data, full.names = TRUE)
 
 #check to see if there are unprocessed files, if not quit
@@ -31,9 +27,9 @@ if(length(to_register) > 1){
  #iterate through image files, call fiji macro on each to create file
 for (var in to_register) {
   fiji.path = neuronbridger:::fiji()
-  runMacro(macro = macro, 
+  runMacro(macro = macro1, 
            macroArg = var, 
-           headless = FALSE,
+           headless = TRUE,
            batch = FALSE,
            MinMem = "100m",
            MaxMem = "25000m",
@@ -44,26 +40,42 @@ for (var in to_register) {
            ijArgs = NULL,
            fijiPath = fiji.path,
            DryRun = FALSE)
-  #how to get it to stop running because
   
-  # 3 -- for each file, set up a registration, inc. creating the CMTK command file, which is a .sh
-  # run the .sh file using system
+  # 3 -- for each confocal file, set up a registration,
   file = basename(var)
+  #get the template brain from the file name
   template = get_registration_brain(file)
   
+  #create the CMTK registration .sh file
   munger_name = write_cmtkreg(var,template)
-  system2(command = "sh",
-          args = c(munger_name))
-  #system2(munger_name)
-  #system2(paste("chmod u+r+x ", munger_name))
-  #system2(paste("sh ", munger_name))
   
-  # 4 -- read the hemibrain cell type from the file name
-  # make a .nrrd file in the same space and save with the registered data
-  #how to incorporate registered brain of choice? must be hard coded?
-  hemibrain_to_nrrd(get_cell_type(file))
+  # run the .sh file using system
+  system2(command = "sh", args = c(munger_name))
   
-  #when done, loop through all of the unprocessed files and move them to the processed folder
-  move_files(sprintf("/Volumes/Neurobio/Wilson Lab/Emily/unprocessed%s", file), "/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/processed", overwrite = FALSE)
+  # 4 -- read in the hemibrain cell type from the file name
+  # saves the hemibrain .nrrd file in the same space as the registered confocal file (specifically the warp)
+  temp = get_image_folder(file)
+  hemibrain_to_nrrd(get_cell_type(file), sprintf(savefolder="/Users/wilsonlab/Desktop/Registration/Reformatted/%s", temp))
   
+  #move all of the unprocessed files into processed folder
+  move_files(sprintf("/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/%s", file), "/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/processed", overwrite = FALSE)
+  
+  #gets the the contents of the reformatted folder, should include both reformatted confocal channels + the hemibrain .nrrd file
+  contents = list.files(sprintf("/Users/wilsonlab/Desktop/Registration/Reformatted/%s",temp), full.names = TRUE)
+  
+  #creates a composite of registered image and saves to the desktop
+  #the problem here is that the final registered images probably won't exist by the time this tries to execute
+  runMacro(macro = macro2, 
+           macroArg = contents[2], 
+           headless = TRUE,
+           batch = FALSE,
+           MinMem = "100m",
+           MaxMem = "25000m",
+           IncrementalGC = TRUE,
+           Threads = NULL,
+           fijiArgs = NULL,
+           javaArgs = NULL, 
+           ijArgs = NULL,
+           fijiPath = fiji.path,
+           DryRun = FALSE)
 }
