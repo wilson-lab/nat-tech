@@ -2,8 +2,8 @@ setwd("/Users/wilsonlab/Documents/GitHub/nat-tech/")
 source("R/startup/functions.R")
 source("R/startup/packages.R")
 
-# run R script at specified time 
-# runs at 8pm Mon-Fri (supposedly)
+# 0 -- set up crontab on your computer to ru the script (crontab -e)
+# runs at 5pm Mon-Fri (supposedly)
 # 0 17 * * 1-5  /usr/local/bin/Rscript /Users/wilsonlab/Documents/GitHub/nat-tech/R/pipeline.R > /Users/wilsonlab/Documents/GitHub/nat-tech/R/jobs/day.log 2>&1
 
 # 1 -- find if there is a unprocessed file in the unprocessed folder on the server
