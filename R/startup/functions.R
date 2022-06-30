@@ -168,7 +168,7 @@ write_cmtkreg <- function(file_name,
   
   #for o2 will need to change the save file path
   #file path for munger file -> for o2 should be /Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration/commands
-  save_path = file.path("/Users/WilsonLab/Desktop/Registration/Commands", save_file_name)
+  save_path = file.path("/Users/wilsonlab/Desktop/Registration/Commands", save_file_name)
     
   #creates the array of the commands for the cmtk registration
   array = c("#!/bin/bash", 

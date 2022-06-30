@@ -24,7 +24,7 @@ run("8-bit");
 
 run("Merge Channels...", "c2=" + name + " c5=" + nrrd_name + " create");
 
-saveAs("Tiff", "/Users/wilsonlab/Desktop/" + final);
+saveAs("Tiff", x + "/" + final);
 
 run("Close All");
 exit();
