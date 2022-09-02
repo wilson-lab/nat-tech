@@ -224,3 +224,29 @@ runMacro <- function (macro = "", macroArg = "", headless = FALSE, batch = TRUE,
     return(cmd)
   return(0 == system(cmd))
 }
+
+#reconnect to the server
+server.connect <- function(server="research.files.med.harvard.edu/Neurobio/") {
+  user=Sys.getenv('neurobio_user')
+  pw=Sys.getenv('neurobio_password')
+  system(sprintf('/usr/bin/osascript  -e \'mount volume \"smb://%s:%s@%s/\"\'' ,user,pw,server))
+  return(TRUE)  # success
+}
+
+#runs the server.connect function multiple times if it fails 
+server.connect.cycle <- function(server="research.files.med.harvard.edu/Neurobio/",
+                                 attempts = 3, 
+                                 sleep.seconds = 60){
+  for (i in 1:attempts) {
+    res <- try(server.connect(server), silent = TRUE)
+    if (!("try-error" %in% class(res))) {
+      print("Connected...")
+      return(res)
+    }
+    print(paste0("Attempt #", i, " failed"))
+    Sys.sleep(sleep.seconds)
+  }
+  stop("Maximum number of connection attempts exceeded")
+}
+
+
