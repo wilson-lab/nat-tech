@@ -249,4 +249,3 @@ server.connect.cycle <- function(server="research.files.med.harvard.edu/Neurobio
   stop("Maximum number of connection attempts exceeded")
 }
 
-
