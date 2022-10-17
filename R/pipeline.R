@@ -1,13 +1,11 @@
-# 4 -- read in the hemibrain cell type from the file name
-# saves the hemibrain .nrrd file in the same space as the registered confocal file (specifically the warp)
 source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/startup/packages.R")
 source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/startup/functions.R")
-message("imported functions")
 
 # 0 -- set up crontab on your computer to ru the script (crontab -e)
 # run at 5pm Mon-Fri
 # 0 17 * * *  /usr/local/bin/Rscript /Users/wilsonlab/Documents/GitHub/nat-tech/R/pipeline.R > /Users/wilsonlab/Documents/GitHub/nat-tech/R/jobs/day.log 2>&1
 # 40 16 * * 1-5  /usr/local/bin/Rscript /Users/wilsonlab/Documents/GitHub/nat-tech/R/pipeline.R > /Users/wilsonlab/Documents/GitHub/nat-tech/R/jobs/day.log 2>&1
+# 55 16 * * 1-5  /usr/local/bin/Rscript /Users/wilsonlab/Documents/GitHub/nat-tech/R/pipeline.R > /Users/wilsonlab/Documents/GitHub/nat-tech/R/jobs/day.log 2>&1
 
 # 1 -- find if there is a unprocessed file in the unprocessed folder on the server
 # at the end of running registration move the file to processed folder using -  move_files(files, destinations, overwrite = FALSE)
@@ -27,7 +25,6 @@ if(length(to_register) > 1){
 # 2 -- for each file, split into two .nrrd files, one for each channel and save in the correct folder
 # iterate through each unprocessed image, register, pull hemibrain neuron, move raw image to processed folder and create composite
 for (var in to_register) {
-  print(var)
   fiji.path = neuronbridger:::fiji()
   runMacro(macro = macro1, 
            macroArg = var, 
@@ -76,7 +73,7 @@ for (var in to_register) {
   hemibrain_to_nrrd(cell_type = get_cell_type(file), savefolder=sprintf("/Users/wilsonlab/Desktop/Registration/Reformatted/%s", temp), plot3D = FALSE)
   
   # 8 -- create a composite of the hemibrain neuron and the confocal image and save in the Registration/Reformatted folder
-  #creates a composite of registered image and hemibrain neuron
+  # creates a composite of registered image and hemibrain neuron
   runMacro(macro = macro2, 
            macroArg = contents[2], 
            headless = TRUE,
