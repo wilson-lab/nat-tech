@@ -44,32 +44,44 @@ neuron_to_hemibrain <- function(trace, cell_type){
 }
 
 #transform a hemibrain neuron into a .nrrd file
-hemibrain_to_nrrd <- function(cell_type, ref="JRC2018U", savefolder = "data", plot3D = TRUE){
+hemibrain_to_nrrd <- function(cell_type, ref="JRC2018U", savefolder = "data", plot3D = FALSE, mesh = TRUE){
   #get hemibrain neuron
   hbn.info <- neuprint_search(sprintf("type:%s.*",cell_type))
   
   #get the neuron skeletons
-  hbn_skel = neuprint_read_neurons(hbn.info$bodyid)
-  class(hbn_skel)
-  
+  message("reading hemibrain skeletons")
+  hbn_skels = neuprintr::neuprint_read_neurons(hbn.info$bodyid)
+  message('resampling hemibrain skeletons')
+  hbn_skels = nat::nlapply(hbn_skels, nat::resample, stepsize = 1)
+  if(mesh){
+    message('reading hemibrain meshes')
+    hbn_neurons = hemibrainr:::hemibrain_neuron_meshes(hbn.info$bodyid)
+    points<-rbind(nat::xyzmatrix(hbn_neurons)*(1000/8)/1000,
+                  nat::xyzmatrix(hbn_skels))
+    
+  }else{
+    points<-nat::xyzmatrix(hbn_skels)
+  }
+
   #transform hemibrain neuron to template space
-  hbn.reg = xform_brain(hbn_skel*8/1000, reference=ref, sample="JRCFIB2018F")
+  message('transforming hemibrain points to JRCFIB2018F')
+  points.reg <- xform_brain(points*8/1000, reference=ref, sample="JRCFIB2018F")
   
   # make im3d
   x <- get(ref)
-  points=xyzmatrix(hbn.reg)
-  I=as.im3d(points,x)
+  I <- nat::as.im3d(points.reg,x)
   
   if (plot3D){
     nopen3d()
     #plot FC1 neurons with different colors
-    plot3d(hbn.reg,lwd=3,col='black',WithNodes=FALSE,soma=FALSE)
+    plot3d(points.reg, lwd=3,col='black',WithNodes=FALSE,soma=FALSE)
     plot3d(x)
     points3d(points,col="green")
   }
   
   #save the hbn to a .nrrd file
-  dir.create(savefolder)
+  message('writing .nrrd file')
+  dir.create(savefolder, showWarnings = FALSE)
   write.nrrd(I, file.path(savefolder, sprintf("%s_%s.nrrd",cell_type,ref)))
 }
 
@@ -101,26 +113,18 @@ flywireid_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder 
 }
 
 #file format: 20220408(1)_JRCU2018U(2)_FC1(3)_AD(4)_GDBD(5)_01(6).tif(7)
-#take the full file name and returns just the cell type
-get_cell_type <- function(file_name){
-  file_name = basename(file_name)
-  #split the name at "_"
-  name_arr = strsplit(file_name, "_")
-  return(name_arr[[1]][3])
-}
-
-#file format: 20220408(1)_JRCU2018U(2)_FC1(3)_AD(4)_GDBD(5)_01(6).tif(7)
 #returns the name of the folder where the .nrrd files are saved in the Registration folder (should be in the format of AD_GDBD_num)
 get_image_folder <- function(file_name){
-  file_name = basename(file_name)
+  name_arr = get_name_array(file_name)
   #removes the .tif from the number at the end of the file name
-  no_tif = strsplit(file_name,"[.]")
+  no_tif = strsplit(name_arr[(length(name_arr))],"[.]")
   
-  #splits up the name string based on underscore
-  name_arr = strsplit(no_tif[[1]][1],"_")
-  
-  #returns the folder name in the format "AD_GDBD_num"
-  return(sprintf("%s_%s_%s",name_arr[[1]][4],name_arr[[1]][5],name_arr[[1]][6]))
+  if(length(name_arr) == 6){
+    return(sprintf("%s_%s_%s",name_arr[4],name_arr[5],no_tif[[1]][1]))
+  }else if(length(name_arr) == 5){
+    #returns the folder name in the format "Gal4_num"
+    return(sprintf("%s_%s",name_arr[4],no_tif[[1]][1]))
+  }
 }
 
 #correctly formats the date and time based on how the FIJI plugin CMTK gui formats it
@@ -131,36 +135,51 @@ time_date_format <- function(){
   return(sprintf("%s_%s.%s.%s",i[[1]][1],time[[1]][1],time[[1]][2],time[[1]][3]))
 }
 
-#file format: 20220408(1)_JRCU2018U(2)_FC1(3)_AD(4)_GDBD(5)_01(6).tif(7)
-#get the template brain from the file name
-get_registration_brain <- function(file_name){
-  file_name = basename(file_name)
+#gets the correct name of the template brain
+#if full is true will return the full name of the file, otherwise will just return shortened version
+get_registration_brain <- function(file_name, full = FALSE){
+  #file_name = basename(file_name)
   #split the name at "_" and set the template name
   name_arr = strsplit(file_name, "_")
-  template = name_arr[[1]][2]
   
   #get all of the template brains in the Refbrain folder
   template_folder = list.files('/Users/WilsonLab/Desktop/Registration/Refbrain')
+  
   #loop through all of the template brains in the folder and compare to template from the file name
   for(var in template_folder){
-    x = strsplit(var, "_")
-    y = x[[1]][1]
-  
-    #if the refbrain from the refbrain folder is equal to the template from the file name return the full name of the template
-    if(y == template){
-     return(var)
-    }else if(template == "FCWB" & y == "FCWB.nrrd"){
-      return(var)
+    #split template brains by "_" to just get the name
+    temp_name = strsplit(var, "_")
+    
+    #set a temp variable to the first element of the template brain name array (i.e JRC2018U_38um_iso_16bit.nrrd would be just JRC2018U)
+    y = temp_name[[1]][1]
+    
+    #set temp to be if the JRC2018U string exists in the file name, will return true in the location where string matches
+    temp = grepl(y, name_arr[[1]], ignore.case = TRUE)
+    
+    #if true is returned, find the index of true, since i is an array use the length to return correct template
+    i = grep("TRUE",temp)
+    if(length(i) > 0){
+      if(full == TRUE){
+        return(var)
+      }else{
+        return(y)
+      }
+    }else if(var == "FCWB.nrrd" && length(i) > 0){
+      if(full == TRUE){
+        return(var)
+      }else{
+        return("FCWB")
+      }
     }
   }
 }
-
 
 #need a function to make the cmtkreg to run in terminal 
 #only works for a very specific file name date_celltype_AD_GDBD_num
 write_cmtkreg <- function(file_name,
                           template_path = "JRC2018U_38um_iso_16bit.nrrd",
                           registration_folder = "/Users/wilsonlab/Desktop/Registration"){
+  #might need to change this
   folder = get_image_folder(file_name)
   date_time = time_date_format()
   save_file_name = sprintf("munger_%s.command", date_time)
@@ -249,3 +268,87 @@ server.connect.cycle <- function(server="research.files.med.harvard.edu/Neurobio
   stop("Maximum number of connection attempts exceeded")
 }
 
+#takes file name and returns an array of elements in the correct order
+#if cell is true will return the cell type and not the array
+get_name_array <- function(file_name, cell = FALSE){
+  #name_arr = strsplit(file_name, "_")
+  #evaluate how the file name is separated with the correct characters, wil not accept a mix
+  if(grepl("_", file_name) & !(grepl("-",file_name)) &!(grepl(".",file_name))){
+    name_arr = strsplit(file_name, "_")
+  }else if(grepl("-", file_name) & !(grepl("_",file_name)) &!(grepl(".",file_name))){
+    name_arr = strsplit(file_name, "-")
+  }else if(grepl(".", file_name) & !(grepl("-",file_name)) &!(grepl("-",file_name))){
+    name_arr = strsplit(file_name, ".")
+  }else{
+    stop("wrong file name format: separate file name with \'_\' or \'-\' or \'.\' only")
+  }
+  name_arr = name_arr[[1]]
+  
+  #get index of image number
+  img_num <- grep(".tif", name_arr,ignore.case = TRUE)
+  #get index of date
+  date <- grep("TRUE",(grepl("^[0-9]+$", name_arr)))
+  #get template of template brain
+  template <- get_registration_brain(file_name)
+  template_loc <- grep(template, name_arr,ignore.case = TRUE)
+  
+  if(length(name_arr) == 6){
+    #get index of AD and DBD 
+    AD <- grep("AD", name_arr, ignore.case = TRUE)
+    GDBD <- grep("GDBD", name_arr, ignore.case = TRUE)
+    
+    #get cell type from remaining fragments
+    cell_type = name_arr[!name_arr %in% c(name_arr[AD], name_arr[GDBD],name_arr[img_num],name_arr[template_loc],name_arr[date])]
+    
+    if(cell == TRUE){
+      return(cell_type)
+    }else{
+      #return array in correct order
+      c(name_arr[date],template,cell_type,toupper(name_arr[AD]),toupper(name_arr[GDBD]),name_arr[img_num])
+    }
+  }else if(length(name_arr) == 5){
+    #if the name of the file is shorter, assume gal4 line
+    gal4 <- grep("Gal4",ignore.case = TRUE, name_arr)
+    
+    #get cell type from remaining fragments
+    cell_type = name_arr[!name_arr %in% c(name_arr[gal4],name_arr[img_num],name_arr[template_loc],name_arr[date])]
+    
+    if(cell == TRUE){
+      return(cell_type)
+    }else{
+      #return array in correct order
+      c(name_arr[date],template,cell_type,name_arr[gal4],name_arr[img_num])
+    }
+  }else{
+    #checks if the file is too short, otherwise will finally throw an error that the file name is incorrectly formatted
+    if(length(name_arr) > 6 | length(name_arr) < 5){
+      stop("wrong file name format: name too long or too short, name should be in format date_template_celltype_genotype_expnum")
+    }else{
+      stop("wrong file name format")
+    }
+  }
+}
+
+#changes file name if its not correct already
+correct_file_name <- function(full_file){
+  #gets the path
+  path = dirname(full_file)
+  #gets the array of the name in the correct order
+  temp = get_name_array(basename(full_file))
+  #gets the correct file naem
+  new = make_file_name(temp)
+  #changes the file name to the correct format
+  file.rename(full_file,sprintf("%s/%s",path,new))
+  return(new)
+}
+
+#correctly formats name of the file so that no errors are thrown when sent to FIJI macros
+#defaults to using underscores
+make_file_name <- function(arr){
+  if(length(arr) == 6){
+    sprintf("%s_%s_%s_%s_%s_%s", arr[1],arr[2],arr[3],arr[4],arr[5],arr[6])
+  }else if(length(arr) == 5){
+    sprintf("%s_%s_%s_%s_%s", arr[1],arr[2],arr[3],arr[4],arr[5])
+  }
+  
+}
