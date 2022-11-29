@@ -2,7 +2,7 @@ source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/startup/packages.R")
 source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/startup/functions.R")
 
 # 0 -- set up crontab on your computer to ru the script (crontab -e)
-# run at 4:55pm Mon-Fri, create a log to review, point to where you have put this repository
+# example below: run scripte at 4:55pm Mon-Fri, create a log to review, point to where you have put this repository
 # 55 16 * * 1-5  /usr/local/bin/Rscript /Users/[user name]/Documents/GitHub/nat-tech/R/pipeline.R > /Users/[user name]/Documents/GitHub/nat-tech/R/jobs/day.log 2>&1
 
 # 1 -- find if there is a unprocessed file in the unprocessed folder on the server
