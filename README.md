@@ -60,7 +60,7 @@ write_cmtkreg()
 
 First, take a light level image like this
 
-![exampleimage1](README_files/images/example_image3.png)
+![exampleimage1](README_files/images/example_image4.png)
 
 And then save the 2 or 3 channel .tif file in the correct folder
 
