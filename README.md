@@ -34,7 +34,37 @@ adds functionality by co-plotting these neurons with connectome date.
 
 In the following, we detail some of `nat-tech`’s functionality
 
-# Example Functions
+# Useful Functions
+
+``` r
+#takes a .nrrd file and plots it with its counterpart in hemibrain connectome
+nrrd_to_hemibrain()
+
+#converts a .swc neuron trace and plots it with its counterpart in hemibrain connectome
+neuron_to_hemibrain()
+
+#converts a hemibrain neuron into a .nrrd file (to compare to a light-level image image)
+hemibrain_to_nrrd()
+
+#converts a flywire neuron into a .nrrd file (to compare to a light-level image image)
+flywireid_to_nrrd()
+
+#writes the cmtk registration command based on the Registration file location
+write_cmtkreg()
+
+#![exampleimage1](README_files/images/example_image2.png)
+#![exampleimage1](README_files/images/example_image1.png)
+```
+
+# To run the pipeline
+
+First, take a light level image like this
+
+![exampleimage1](README_files/images/example_image3.png)
+
+And then save the 2 or 3 channel .tif file in the correct folder
+
+That’s all! Below is code to run the pipeline
 
 ``` r
 #takes a .nrrd file and plots it with its counterpart in hemibrain connectome
@@ -53,12 +83,11 @@ flywireid_to_nrrd()
 write_cmtkreg()
 ```
 
-To run the pipeline
-
 # Acknowledgements
 
-This package was created by Emily Kellogg and Alexander Bates while in
-the group of [Dr. Rachel
+This package was created by Emily Kellogg and [Alexander Shakeel
+Bates](https://scholar.google.com/citations?user=BOVTiXIAAAAJ&hl=en)
+while in the group of [Dr. Rachel
 Wilson](https://en.wikipedia.org/wiki/Rachel_Wilson_(neurobiologist)).
 
 # References
