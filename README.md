@@ -65,23 +65,31 @@ write_cmtkreg()
 
 # To run the pipeline
 
-Install CMTK GUI in FIJI according to the directions on the [github
-page](https://github.com/jefferis/fiji-cmtk-gui) and the correct
-registration [folder
-structure](http://flybrain.mrc-lmb.cam.ac.uk/dokuwiki/doku.php?id=warping_manual:registration_gui)
-outlined here.
-
-Then, take a raw light-level image z-stack like this
-
 ![exampleimage1](inst/images/workflow.png)
 
-And save the 2 or 3 channel image as a .tif file in the correct folder.
-It is recommended that you also set up a cron job on your machine to run
-as often as you want so you don’t have to run the code manually. You
-must hard code the folder paths so the code knows where to find all of
-your files as well. Adjustment to the number of cores used by the
-registration can also be edited in the write_cmtkreg function in the
-line below.
+First, install the CMTK gui in FIJI according to the directions on the
+github page [github page](https://github.com/jefferis/fiji-cmtk-gui) and
+the correct registration [folder
+structure](http://flybrain.mrc-lmb.cam.ac.uk/dokuwiki/doku.php?id=warping_manual:registration_gui)
+outlined here and below.
+
+![folder_struct](inst/images/folder_struct.png)
+
+Second, go to the parameter.R scripts. Edit the variables to folders on
+your local machine
+
+``` r
+#this folder is where all of your registration files are, commonly on the desktop
+registration_folder = "~/Desktop/Registration"
+
+#this folder is the path where your unprocessed and processed .tif files will be 
+data_folder = "~/Desktop/to_register"
+raw_data = file.path(data_folder,"unprocessed")
+processed_data = file.path(data_folder,"processed")
+```
+
+Second, save your 2 or 3 channel image as a .tif file in the correct
+folder, this can be in folder specified elsewhere.
 
 ``` r
 sprintf(\"/Applications/Fiji.app/bin/cmtk/munger\" -b \"/Applications/Fiji.app/bin/cmtk\" -a -w -r 0102  -X 26 -C 8 -G 80 -R 4 -A \"--accuracy 0.4\" -W \"--accuracy 0.4\"  -T 4 -s \"Refbrain/%s\" images/%s", template_path, folder)
