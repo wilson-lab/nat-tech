@@ -29,8 +29,8 @@ connectome.
 
 In the past, light-level microscopy data could be registrated using the
 [fiji-cmtk-gui](https://github.com/jefferis/fiji-cmtk-gui). This tool
-automates this process more without haveing to open the GUI and also
-adds functionality by co-plotting these neurons with connectome date.
+automates this process more without having to open the GUI and also adds
+functionality by co-plotting these neurons with connectome date.
 
 In the following, we detail some of `nat-tech`’s functionality
 
@@ -51,36 +51,30 @@ flywireid_to_nrrd()
 
 #writes the cmtk registration command based on the Registration file location
 write_cmtkreg()
-
-#![exampleimage1](README_files/images/example_image2.png)
-#![exampleimage1](README_files/images/example_image1.png)
 ```
 
 # To run the pipeline
 
-First, take a light level image like this
+Install CMTK GUI in FIJI according to the directions on the [github
+page](https://github.com/jefferis/fiji-cmtk-gui) and the correct
+registration [folder
+structure](http://flybrain.mrc-lmb.cam.ac.uk/dokuwiki/doku.php?id=warping_manual:registration_gui)
+outlined here.
 
-![exampleimage1](README_files/images/example_image4.png)
+Then, take a raw light-level image z-stack like this
 
-And then save the 2 or 3 channel .tif file in the correct folder
+![exampleimage1](inst/images/example_image4.png)
 
-That’s all! Below is code to run the pipeline
+And save the 2 or 3 channel image as a .tif file in the correct folder.
+It is recommended that you also set up a cron job on your machine to run
+as often as you want so you don’t have to run the code manually. You
+must hard code the folder paths so the code knows where to find all of
+your files as well.
+
+That’s all! Below is code to run the pipeline in the terminal
 
 ``` r
-#takes a .nrrd file and plots it with its counterpart in hemibrain connectome
-nrrd_to_hemibrain()
-
-#converts a .swc neuron trace and plots it with its counterpart in hemibrain connectome
-neuron_to_hemibrain()
-
-#converts a hemibrain neuron into a .nrrd file (to compare to a light-level image image)
-hemibrain_to_nrrd()
-
-#converts a flywire neuron into a .nrrd file (to compare to a light-level image image)
-flywireid_to_nrrd()
-
-#writes the cmtk registration command based on the Registration file location
-write_cmtkreg()
+$ Rscript /Users/[user]/Documents/GitHub/nat-tech/R/pipeline.R
 ```
 
 # Acknowledgements
@@ -95,7 +89,7 @@ Wilson](https://en.wikipedia.org/wiki/Rachel_Wilson_(neurobiologist)).
 -   **The hemibrain connectome (hemibrain:v1.2.1)**: Scheffer, L.K., Xu,
     C.S., Januszewski, M., Lu, Z., Takemura, S.-Y., Hayworth, K.J.,
     Huang, G.B., Shinomiya, K., Maitlin-Shepard, J., Berg, S., et
-    al. (2020). A connectome and analysis of the adult Drosophila
+    al. (2020). A connectome and analysis of the adult *Drosophila*
     central brain. Elife 9. [doi:
     https://doi.org/10.7554/eLife.57443](https://doi.org/10.7554/eLife.57443)
 
