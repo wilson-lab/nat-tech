@@ -73,7 +73,7 @@ outlined here.
 
 Then, take a raw light-level image z-stack like this
 
-![exampleimage1](inst/images/example_image4.png)
+![exampleimage1](inst/images/workflow.png)
 
 And save the 2 or 3 channel image as a .tif file in the correct folder.
 It is recommended that you also set up a cron job on your machine to run
@@ -118,3 +118,27 @@ Wilson](https://en.wikipedia.org/wiki/Rachel_Wilson_(neurobiologist)).
     template of the Drosophila brain and ventral nerve cord. bioRxiv.
     [doi:
     https://doi.org/10.1101/376384](https://doi.org/10.1101/376384)
+
+-   **Computational Morphometry Toolkit (CMTK)**: Rohlfing T, Maurer CR
+    Jr. Nonrigid image registration in shared-memory multiprocessor
+    environments with application to brains, breasts, and bees. IEEE
+    Trans Inf Technol Biomed. 2003 Mar;7(1):16-25. [doi:
+    10.1109/titb.2003.808506](10.1109/titb.2003.808506)
+
+-   **FIJI**: Schindelin, J., Arganda-Carreras, I., Frise, E., Kaynig,
+    V., Longair, M., Pietzsch, T., … Cardona, A. (2012). Fiji: an
+    open-source platform for biological-image analysis. Nature Methods,
+    9(7), 676–682. <doi:10.1038/nmeth.2019>
+
+-   **fiji-cmtk-gui**: Kohl J, Ostrovsky AD, Frechter S, Jefferis GS. A
+    bidirectional circuit switch reroutes pheromone signals in male and
+    female brains. Cell. 2013 Dec 19;155(7):1610-23. [doi:
+    10.1016/j.cell.2013.11.025.](10.1016/j.cell.2013.11.025) PMID:
+    24360281; PMCID: PMC3898676.
+
+-   **The natverse**: Bates, A.S., Manton, J.D., Jagannathan, S.R.,
+    Costa, M., Schlegel, P., Rohlfing, T., Jefferis, G.(2020) The
+    natverse, a versatile toolbox for combining and analysing
+    neuroanatomical data eLife 9:e53350. [doi:
+    https://doi.org/10.7554/eLife.53350](https://doi.org/10.7554/eLife.53350)
+    )
