@@ -4,14 +4,23 @@
 # nat-tech
 
 <!-- badges: start -->
+
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 <!-- badges: end -->
 
 The goal of `nat-tech` is to provide R client utilities for streamlining
 registration of light-level microscopy data to existing [template
 brains](https://www.janelia.org/open-science/jrc-2018-brain-templates)
-for for *D. melanogaster* neurons. This tool utilizes the [Computational
-Morphometry Toolkit (CMTK)](https://www.nitrc.org/projects/cmtk/) to
-write CMTK registration commands.
+for for *D. melanogaster* neurons. It is a set of R scripts that enable
+a user to register raw light miscroscopy data, and create .nrrd files of
+the final registered product alongside hemibrain neuron reconstructions.
+Our main use case is in running a splitGAL4 line screen; we want to see
+whether the potential hits in our screen co-localise with the specified
+hemibrain neuronal cell types we are trying to target. This tool
+utilizes the [Computational Morphometry Toolkit
+(CMTK)](https://www.nitrc.org/projects/cmtk/) to write CMTK registration
+commands.
 
 # Data sets
 
@@ -22,8 +31,9 @@ Connectome data can be seen using the [neuPrint
 website](https://neuprint.janelia.org/help/videos?dataset=hemibrain) and
 accessed programmatically in R using
 [neuprintr](https://github.com/natverse/neuprintr). This tool also will
-match the registered data to the corresponding neuron in the hemibrain
-connectome.
+help you co-visualize the registered data to the corresponding neuron in
+the hemibrain connectome. The user must specifcy what cell type they
+want included in the hemibrain .nrrd file.
 
 # How have these registrations been performed?
 
@@ -69,7 +79,13 @@ And save the 2 or 3 channel image as a .tif file in the correct folder.
 It is recommended that you also set up a cron job on your machine to run
 as often as you want so you don’t have to run the code manually. You
 must hard code the folder paths so the code knows where to find all of
-your files as well.
+your files as well. Adjustment to the number of cores used by the
+registration can also be edited in the write_cmtkreg function in the
+line below.
+
+``` r
+sprintf(\"/Applications/Fiji.app/bin/cmtk/munger\" -b \"/Applications/Fiji.app/bin/cmtk\" -a -w -r 0102  -X 26 -C 8 -G 80 -R 4 -A \"--accuracy 0.4\" -W \"--accuracy 0.4\"  -T 4 -s \"Refbrain/%s\" images/%s", template_path, folder)
+```
 
 That’s all! Below is code to run the pipeline in the terminal
 
@@ -83,6 +99,9 @@ This package was created by Emily Kellogg and [Alexander Shakeel
 Bates](https://scholar.google.com/citations?user=BOVTiXIAAAAJ&hl=en)
 while in the group of [Dr. Rachel
 Wilson](https://en.wikipedia.org/wiki/Rachel_Wilson_(neurobiologist)).
+
+**Kellogg E and Bates AS** (2022). *nat-tech* **R project** version
+0.1.0. <https://github.com/wilson-lab/nat-tech>
 
 # References
 
