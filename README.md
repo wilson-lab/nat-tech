@@ -20,7 +20,10 @@ whether the potential hits in our screen co-localise with the specified
 hemibrain neuronal cell types we are trying to target. This tool
 utilizes the [Computational Morphometry Toolkit
 (CMTK)](https://www.nitrc.org/projects/cmtk/) to write CMTK registration
-commands.
+commands. Below is a graphic detailing how this tool works and the
+expected output.
+
+![exampleimage1](inst/images/workflow.png)
 
 # Data sets
 
@@ -65,15 +68,13 @@ write_cmtkreg()
 
 # To run the pipeline
 
-![exampleimage1](inst/images/workflow.png)
-
 First, install the CMTK gui in FIJI according to the directions on the
 github page [github page](https://github.com/jefferis/fiji-cmtk-gui) and
 the correct registration [folder
 structure](http://flybrain.mrc-lmb.cam.ac.uk/dokuwiki/doku.php?id=warping_manual:registration_gui)
 outlined here and below.
 
-![folder_struct](inst/images/folder_struct.png)
+<img src="inst/images/folder_struct.png" width="50%" height="50%" />
 
 Second, go to the parameter.R scripts. Edit the variables to folders on
 your local machine
@@ -88,17 +89,69 @@ raw_data = file.path(data_folder,"unprocessed")
 processed_data = file.path(data_folder,"processed")
 ```
 
-Second, save your 2 or 3 channel image as a .tif file in the correct
-folder, this can be in folder specified elsewhere.
+Third, save your 2 or 3 channel image as a .tif file (as shown below) in
+the correct folder, this was specified in the step before. The way you
+name this file is also important. The format for a split-gal4 line is
+date_templatebrain_celltype_AD_GDBD_expnum or for a Gal4 line is
+date_templatebrain_celltype_Gal4_expnum.
 
-``` r
-sprintf(\"/Applications/Fiji.app/bin/cmtk/munger\" -b \"/Applications/Fiji.app/bin/cmtk\" -a -w -r 0102  -X 26 -C 8 -G 80 -R 4 -A \"--accuracy 0.4\" -W \"--accuracy 0.4\"  -T 4 -s \"Refbrain/%s\" images/%s", template_path, folder)
-```
+<img src="inst/images/example_lightlevel_image.png" width="50%" height="50%" />
 
-That’s all! Below is code to run the pipeline in the terminal
+That’s all you have to do! Below is code to run the pipeline in the
+terminal
 
 ``` r
 $ Rscript /Users/[user]/Documents/GitHub/nat-tech/R/pipeline.R
+```
+
+# Walkthrough of what’s happening
+
+When you start the code, the next thing that will happen is that the
+code will run a FIJI macro that splits your light level .tif into its
+respective channels and names them according to the CMTK gui
+requirements. Then, the program will create the CMTK command file and
+run that to register and reformat your channels.
+
+``` r
+runMacro(macro = "R/macros/create_registration_images.ijm")
+munger_name = write_cmtkreg()
+system(paste0("sh ", munger_name))
+```
+
+This is what the reformatted channels should look like.
+
+![regimages](inst/images/registered_images.png) The next thing that will
+happen is that the code will get the specified neuron from the hemibrain
+connectome and then register this to the specified template brain and
+convert it into a .nrrd file.
+
+``` r
+hemibrain_to_nrrd()
+```
+
+This is what that process looks like
+![regimages2](inst/images/hemibrain_to_nrrd.png) Finally, the code will
+run a FIJI macro to combine your reformatted images with the specified
+neuron from the hemibrain that got converted into a .nrrd file.
+
+``` r
+runMacro(macro = "R/macros/create_composite.ijm")
+```
+
+It should look like this
+
+![regimages](inst/images/example_registered_overlayed_image.png)
+
+# Things to note
+
+The registration and reformatting process can take a while so you can
+adjust the number of needed cores in the CMTK command. Below is the line
+of code you need to edit change in the functions.R script. The part you
+need to edit is the “-T 4” part where the number is the number of cores.
+You can use the max number your computer has or as many as you need.
+
+``` r
+sprintf(\"/Applications/Fiji.app/bin/cmtk/munger\" -b \"/Applications/Fiji.app/bin/cmtk\" -a -w -r 0102  -X 26 -C 8 -G 80 -R 4 -A \"--accuracy 0.4\" -W \"--accuracy 0.4\"  -T 4 -s \"Refbrain/%s\" images/%s", template_path, folder)
 ```
 
 # Acknowledgements
