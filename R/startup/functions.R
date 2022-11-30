@@ -178,7 +178,7 @@ get_registration_brain <- function(file_name, full = FALSE){
 #only works for a very specific file name date_celltype_AD_GDBD_num
 write_cmtkreg <- function(file_name,
                           template_path = "JRC2018U_38um_iso_16bit.nrrd",
-                          registration_folder = "/Users/wilsonlab/Desktop/Registration"){
+                          registration_folder = "~/Desktop/Registration"){
   #might need to change this
   folder = get_image_folder(file_name)
   date_time = time_date_format()
@@ -187,7 +187,9 @@ write_cmtkreg <- function(file_name,
   
   #for o2 will need to change the save file path
   #file path for munger file -> for o2 should be /Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration/commands
-  save_path = file.path("/Users/wilsonlab/Desktop/Registration/Commands", save_file_name)
+  command_folder <- file.path(registration_folder,"Commands")
+  dir.create(command_folder, showWarnings = FALSE)
+  save_path = file.path(command_folder, save_file_name)
     
   #creates the array of the commands for the cmtk registration
   array = c("#!/bin/bash", 

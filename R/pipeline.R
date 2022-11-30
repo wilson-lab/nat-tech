@@ -1,5 +1,6 @@
-source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/startup/packages.R")
-source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/startup/functions.R")
+source("R/startup/packages.R")
+source("R/startup/functions.R")
+source("R/parameters.R")
 
 # 0 -- set up crontab on your computer to ru the script (crontab -e)
 # example below: run scripte at 4:55pm Mon-Fri, create a log to review, point to where you have put this repository
@@ -7,10 +8,9 @@ source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/startup/functions.R")
 
 # 1 -- find if there is a unprocessed file in the unprocessed folder on the server
 # at the end of running registration move the file to processed folder using -  move_files(files, destinations, overwrite = FALSE)
-raw_data = "/Volumes/Neurobio/Wilson\ Lab/Emily/unprocessed"
 processed_data = c(file.path(raw_data,"processed"), file.path(raw_data,"Registration"))
-macro1 = "/Users/wilsonlab/Documents/GitHub/nat-tech/R/macros/create_registration_images.ijm"
-macro2 = "/Users/wilsonlab/Documents/GitHub/nat-tech/R/macros/create_composite.ijm"
+macro1 = "R/macros/create_registration_images.ijm"
+macro2 = "R/macros/create_composite.ijm"
 to_register <- list.files(raw_data, full.names = TRUE)
 
 # check to see if there are unprocessed files, if not quit
@@ -47,7 +47,7 @@ for (var in to_register) {
   template = get_registration_brain(var, full = TRUE)
   
   # create the CMTK registration .sh file
-  munger_name = write_cmtkreg(var,template_path = template)
+  munger_name = write_cmtkreg(var,template_path = template,registration_folder=registration_folder)
   
   # run the .sh file using system
   system(paste0("sh ", munger_name))
@@ -56,25 +56,28 @@ for (var in to_register) {
   temp = get_image_folder(var)
   
   # 5 -- check to see if the server is still connected, if not, reconnects to the server
-  server.exists <- dir.exists("/Volumes/Neurobio/Wilson Lab/Emily/")
+  server.exists <- dir.exists(raw_data)
   message("Can I see the server? ", server.exists)
   if(!server.exists){
     server.connect.cycle()
-    server.exists <- dir.exists("/Volumes/Neurobio/Wilson Lab/Emily/")
+    server.exists <- dir.exists(raw_data)
     message("Can I see the server now? ", server.exists)
   }
   
   #get the file name so you can move the file to the processed folder
   file = basename(var)
-  move_files(sprintf("/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/%s", file), 
-             "/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/processed", overwrite = FALSE)
+  move_files(file.path(raw_data, file), 
+             processed_data, overwrite = FALSE)
   
   # 6 -- gets the the contents of the reformatted folder, should include both reformatted confocal channels
-  contents = list.files(sprintf("/Users/wilsonlab/Desktop/Registration/Reformatted/%s",temp), full.names = TRUE)
+  reformatted_folder <- file.path(registration_folder,"Reformatted")
+  dir.create(reformatted_folder, showWarnings = FALSE)
+  reformatted_exp_folder <- file.path(reformatted_folder,temp)
+  contents <- list.files(reformatted_exp_folder, full.names = TRUE)
   
   # 7 -- read in the hemibrain cell type from the file name
   # puts the hemibrain .nrrd file in the same space registered confocal files AFTER fetching both confocal files
-  hemibrain_to_nrrd(cell_type = get_name_array(var,cell = TRUE), savefolder=sprintf("/Users/wilsonlab/Desktop/Registration/Reformatted/%s", temp), plot3D = FALSE)
+  hemibrain_to_nrrd(cell_type = get_name_array(var,cell = TRUE), savefolder=reformatted_exp_folder, plot3D = FALSE)
   
   # 8 -- create a composite of the hemibrain neuron and the confocal image and save in the Registration/Reformatted folder
   # creates a composite of registered image and hemibrain neuron
