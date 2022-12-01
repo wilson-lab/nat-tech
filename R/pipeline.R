@@ -1,6 +1,6 @@
+source("R/parameters.R")
 source("R/startup/packages.R")
 source("R/startup/functions.R")
-source("R/parameters.R")
 
 # 0 -- set up crontab on your computer to ru the script (crontab -e)
 # example below: run scripte at 4:55pm Mon-Fri, create a log to review, point to where you have put this repository

@@ -73,10 +73,9 @@ hemibrain_to_nrrd <- function(cell_type, ref="JRC2018U", savefolder = "data", pl
   
   if (plot3D){
     nopen3d()
-    #plot FC1 neurons with different colors
-    plot3d(points.reg, lwd=3,col='black',WithNodes=FALSE,soma=FALSE)
+    #plot3d(points.reg, lwd=3,col='black',WithNodes=FALSE,soma=FALSE)
     plot3d(x)
-    points3d(points,col="green")
+    points3d(points,col="black")
   }
   
   #save the hbn to a .nrrd file
