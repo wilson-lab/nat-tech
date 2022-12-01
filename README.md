@@ -24,7 +24,7 @@ utilizes the [Computational Morphometry Toolkit
 commands. Below is a graphic detailing how this tool works and the
 expected output.
 
-![exampleimage1](inst/images/workflow3.png)
+![exampleimage1](inst/images/workflow4.png)
 
 # Data sets
 
@@ -43,8 +43,9 @@ want included in the hemibrain .nrrd file.
 
 In the past, light-level microscopy data could be registrated using the
 [fiji-cmtk-gui](https://github.com/jefferis/fiji-cmtk-gui). This tool
-automates this process more without having to open the GUI and also adds
-functionality by co-plotting these neurons with connectome date.
+automates this process so the user doesn’t have to open the GUI or FIJI
+and also adds functionality by co-plotting these neurons with connectome
+date.
 
 In the following, we detail some of `nat-tech`’s functionality
 

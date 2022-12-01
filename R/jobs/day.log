@@ -1,1 +1,9 @@
-Fatal error: cannot open file '/Users/wilsonlab/Documents/GitHub/nat-tech/R/pipeline.R': Operation not permitted
+WARNING: invalid R_MAX_VSIZE ignored
+
+Error in file(filename, "r", encoding = encoding) : 
+  cannot open the connection
+Calls: source -> file
+In addition: Warning message:
+In file(filename, "r", encoding = encoding) :
+  cannot open file 'R/startup/packages.R': No such file or directory
+Execution halted

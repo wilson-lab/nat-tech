@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 
 The goal of `nat-tech` is to provide R client utilities for streamlining registration of light-level microscopy data to existing [template brains](https://www.janelia.org/open-science/jrc-2018-brain-templates) for for *D. melanogaster* neurons. It is a set of R scripts that enable a user to register raw light miscroscopy data, and create .nrrd files of the final registered product alongside hemibrain neuron reconstructions. Our main use case is in running a splitGAL4 line screen; we want to see whether the potential hits in our screen co-localise with the specified hemibrain neuronal cell types we are trying to target. This tool utilizes the [Computational Morphometry Toolkit (CMTK)](https://www.nitrc.org/projects/cmtk/) to write CMTK registration commands. Below is a graphic detailing how this tool works and the expected output.
 
-![exampleimage1](inst/images/workflow3.png)
+![exampleimage1](inst/images/workflow4.png)
 
 # Data sets
 
@@ -29,7 +29,7 @@ The major EM dataset at the time when this package was built was the [hemibrain 
 
 # How have these registrations been performed?
 
-In the past, light-level microscopy data could be registrated using the [fiji-cmtk-gui](https://github.com/jefferis/fiji-cmtk-gui). This tool automates this process more without having to open the GUI and also adds functionality by co-plotting these neurons with connectome date.
+In the past, light-level microscopy data could be registrated using the [fiji-cmtk-gui](https://github.com/jefferis/fiji-cmtk-gui). This tool automates this process so the user doesn't have to open the GUI or FIJI and also adds functionality by co-plotting these neurons with connectome date.
 
 In the following, we detail some of `nat-tech`'s functionality
 
