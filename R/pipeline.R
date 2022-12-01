@@ -1,9 +1,8 @@
 #can't run in terminal without full path to source these files since the terminal can't see these files
 #tried cd into the correct folder using the system("cd ~/Documents/GitHub/nat-tech") command but it doesn't work (probably not permanent)
-
-source("~/Documents/GitHub/nat-tech/R/parameters.R")
-source("~/Documents/GitHub/nat-tech/R/startup/packages.R")
-source("~/Documents/GitHub/nat-tech/R/startup/functions.R")
+source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/parameters.R")
+source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/startup/packages.R")
+source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/startup/functions.R")
 
 # 0 -- set up crontab on your computer to ru the script (crontab -e)
 # example below: run scripte at 4:55pm Mon-Fri, create a log to review, point to where you have put this repository
@@ -12,8 +11,8 @@ source("~/Documents/GitHub/nat-tech/R/startup/functions.R")
 # 1 -- find if there is a unprocessed file in the unprocessed folder on the server
 # at the end of running registration move the file to processed folder using -  move_files(files, destinations, overwrite = FALSE)
 processed_data = c(file.path(raw_data,"processed"), file.path(raw_data,"Registration"))
-macro1 = "~/Documents/GitHub/nat-tech/R/macros/create_registration_images.ijm"
-macro2 = "~/Documents/GitHub/nat-tech/R/macros/create_composite.ijm"
+macro1 = "/Users/wilsonlab/Documents/GitHub/nat-tech/R/macros/create_registration_images.ijm"
+macro2 = "/Users/wilsonlab/Documents/GitHub/nat-tech/R/macros/create_composite.ijm"
 to_register <- list.files(raw_data, full.names = TRUE)
 
 if(length(to_register) == 0){

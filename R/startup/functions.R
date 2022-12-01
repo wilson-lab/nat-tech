@@ -1,22 +1,23 @@
-#this doesn't work, read in a .nrrd file of a confocal image and plot together with a hemibrain neuron
+#this specific function doesn't work, the purpose is to read in a .nrrd file of a confocal image and plot together with a hemibrain neuron
 nrrd_to_hemibrain <- function (file, cell_type){
-  #read in nrrd file (i'm just assuming that this doesn't have to be transformed)
-  i <- read.nrrd(file)
-  df <- data.frame(x=attr(i,'x'),y=attr(i,'y'),z=attr(i,'z'))
-  
-  #get hemibrain neuron and skeletonize
-  hbn <- neuprint_search(sprintf("type:%s",cell_type))
-  hbn_skel <- neuprint_read_neurons(hbn.$bodyid)
-  
-  #transform from hemibrain to template space (JRC2018U)
-  hbn.jrc2018f = xform_brain(hbn_skel*8/1000, reference="JRC2018F", sample="JFRCIB2018F")
-  hbn.jrc2018u = xform_brain(hbn_skel*8/1000, reference="JRC2018U", sample="JRC2018F")
-  
-  #plot nrrd and hemibrain neuron
-  nopen3d()
-  plot3d(neuron())
-  plot3d(hbn.jrc2018u, lwd=3, col='black',WithNodes=FALSE,some=FALSE)
-  plot3d(JRC2018U)
+  print("Still being worked on")
+  # #read in nrrd file (i'm just assuming that this doesn't have to be transformed)
+  # i <- read.nrrd(file)
+  # df <- data.frame(x=attr(i,'x'),y=attr(i,'y'),z=attr(i,'z'))
+  # open
+  # #get hemibrain neuron and skeletonize
+  # hbn <- neuprint_search(sprintf("type:%s",cell_type))
+  # hbn_skel <- neuprint_read_neurons(hbn.$bodyid)
+  # 
+  # #transform from hemibrain to template space (JRC2018U)
+  # hbn.jrc2018f = xform_brain(hbn_skel*8/1000, reference="JRC2018F", sample="JFRCIB2018F")
+  # hbn.jrc2018u = xform_brain(hbn_skel*8/1000, reference="JRC2018U", sample="JRC2018F")
+  # 
+  # #plot nrrd and hemibrain neuron
+  # nopen3d()
+  # plot3d(neuron())
+  # plot3d(hbn.jrc2018u, lwd=3, col='black',WithNodes=FALSE,some=FALSE)
+  # plot3d(JRC2018U)
   
 }
 
