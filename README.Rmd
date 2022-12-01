@@ -57,11 +57,15 @@ write_cmtkreg()
 
 First, install the CMTK gui in FIJI according to the directions on the github page [github page](https://github.com/jefferis/fiji-cmtk-gui) and the correct registration [folder structure](http://flybrain.mrc-lmb.cam.ac.uk/dokuwiki/doku.php?id=warping_manual:registration_gui) outlined here and below.
 
-```{r, echo=FALSE, out.width="50%", out.height="50%"}
+<center>
+
+```{r, echo=FALSE, out.width="75%", out.height="75%"}
 knitr::include_graphics("inst/images/folder_struct.png")
 ```
 
-Second, go to the parameter.R scripts. Edit the variables to folders on your local machine
+</center>
+
+Second, go to the `parameter.R` scripts. Edit the variables to folders on your local machine
 
 ```{r rename, echo = TRUE, eval = FALSE, include = TRUE}
 #this folder is where all of your registration files are, commonly on the desktop
@@ -75,9 +79,13 @@ processed_data = file.path(data_folder,"processed")
 
 Third, save your 2 or 3 channel image as a .tif file (as shown below) in the correct folder, this was specified in the step before. The way you name this file is also important. The format for a split-gal4 line is date_templatebrain_celltype_AD_GDBD_expnum or for a Gal4 line is date_templatebrain_celltype_Gal4_expnum.
 
+<center>
+
 ```{r, echo=FALSE, out.width="50%", out.height="50%"}
 knitr::include_graphics("inst/images/example_lightlevel_image.png")
 ```
+
+</center>
 
 That's all you have to do! Below is code to run the pipeline in the terminal
 
@@ -98,14 +106,25 @@ system(paste0("sh ", munger_name))
 ```
 
 This is what the reformatted channels should look like.
+<center>
 
-![regimages](inst/images/registered_images.png) The next thing that will happen is that the code will get the specified neuron from the hemibrain connectome and then register this to the specified template brain and convert it into a .nrrd file.
+![regimages](inst/images/registered_images.png) 
+
+</center>
+The next thing that will happen is that the code will get the specified neuron from the hemibrain connectome and then register this to the specified template brain and convert it into a .nrrd file.
 
 ```{r echo = TRUE, eval = FALSE, include = TRUE}
 hemibrain_to_nrrd()
 ```
 
-This is what that process looks like ![regimages2](inst/images/hemibrain_to_nrrd.png) Finally, the code will run a FIJI macro to combine your reformatted images with the specified neuron from the hemibrain that got converted into a .nrrd file.
+This is what that process looks like 
+<center>
+
+![regimages2](inst/images/hemibrain_to_nrrd.png) 
+
+</center>
+
+Finally, the code will run a FIJI macro to combine your reformatted images with the specified neuron from the hemibrain that got converted into a .nrrd file.
 
 ```{r echo = TRUE, eval = FALSE, include = TRUE}
 runMacro(macro = "R/macros/create_composite.ijm")
@@ -113,7 +132,11 @@ runMacro(macro = "R/macros/create_composite.ijm")
 
 It should look like this
 
+<center>
+
 ![regimages](inst/images/example_registered_overlayed_image.png)
+
+</center>
 
 # Things to note
 

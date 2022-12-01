@@ -76,10 +76,14 @@ the correct registration [folder
 structure](http://flybrain.mrc-lmb.cam.ac.uk/dokuwiki/doku.php?id=warping_manual:registration_gui)
 outlined here and below.
 
-<img src="inst/images/folder_struct.png" width="50%" height="50%" />
+<center>
 
-Second, go to the parameter.R scripts. Edit the variables to folders on
-your local machine
+<img src="inst/images/folder_struct.png" width="75%" height="75%" />
+
+</center>
+
+Second, go to the `parameter.R` scripts. Edit the variables to folders
+on your local machine
 
 ``` r
 #this folder is where all of your registration files are, commonly on the desktop
@@ -97,7 +101,11 @@ name this file is also important. The format for a split-gal4 line is
 date_templatebrain_celltype_AD_GDBD_expnum or for a Gal4 line is
 date_templatebrain_celltype_Gal4_expnum.
 
+<center>
+
 <img src="inst/images/example_lightlevel_image.png" width="50%" height="50%" />
+
+</center>
 
 That’s all you have to do! Below is code to run the pipeline in the
 terminal
@@ -121,20 +129,30 @@ system(paste0("sh ", munger_name))
 ```
 
 This is what the reformatted channels should look like.
+<center>
 
-![regimages](inst/images/registered_images.png) The next thing that will
-happen is that the code will get the specified neuron from the hemibrain
-connectome and then register this to the specified template brain and
-convert it into a .nrrd file.
+![regimages](inst/images/registered_images.png)
+
+</center>
+
+The next thing that will happen is that the code will get the specified
+neuron from the hemibrain connectome and then register this to the
+specified template brain and convert it into a .nrrd file.
 
 ``` r
 hemibrain_to_nrrd()
 ```
 
 This is what that process looks like
-![regimages2](inst/images/hemibrain_to_nrrd.png) Finally, the code will
-run a FIJI macro to combine your reformatted images with the specified
-neuron from the hemibrain that got converted into a .nrrd file.
+<center>
+
+![regimages2](inst/images/hemibrain_to_nrrd.png)
+
+</center>
+
+Finally, the code will run a FIJI macro to combine your reformatted
+images with the specified neuron from the hemibrain that got converted
+into a .nrrd file.
 
 ``` r
 runMacro(macro = "R/macros/create_composite.ijm")
@@ -142,7 +160,11 @@ runMacro(macro = "R/macros/create_composite.ijm")
 
 It should look like this
 
+<center>
+
 ![regimages](inst/images/example_registered_overlayed_image.png)
+
+</center>
 
 # Things to note
 
