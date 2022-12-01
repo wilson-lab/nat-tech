@@ -1,8 +1,8 @@
-//path = getArgument();
-//name = File.getName(path);
-
-path = "/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/20220216_JRC2018U_vDeltaA_R11E08AD_R70H05GDBD_3.tif";
+path = getArgument();
 name = File.getName(path);
+
+//path = "/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/20220216_JRC2018U_vDeltaA_R11E08AD_R70H05GDBD_3.tif";
+//name = File.getName(path);
 
 if(name=="") exit ("No argument");
 
