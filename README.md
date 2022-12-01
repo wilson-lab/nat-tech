@@ -24,7 +24,7 @@ utilizes the [Computational Morphometry Toolkit
 commands. Below is a graphic detailing how this tool works and the
 expected output.
 
-![exampleimage1](inst/images/workflow.png)
+![exampleimage1](inst/images/workflow3.png)
 
 # Data sets
 
