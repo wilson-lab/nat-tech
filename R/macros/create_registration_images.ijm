@@ -26,7 +26,7 @@ if(name_array.length == 6){
 	celltype = name_array[2];
 	genotype = name_array[3];
 	folder_path = "/" + genotype + name_array[4] + "/";
-	File.makeDirectory("/Users/WilsonLab/Desktop/Registration/Images/" + genotype + name_array[4]);
+	File.makeDirectory("/Users/WilsonLab/Desktop/Registration/images/" + genotype + name_array[4]);
 }
 
 //handle 3 channels
@@ -35,16 +35,16 @@ list = getList("image.titles");
 if(list.length==2){
 	selectWindow("C2-" + name);
 	//for o2 folder should be "/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration/Images"
-	run("Nrrd ... ", "nrrd=/Users/WilsonLab/Desktop/Registration/Images" + folder_path + celltype + "_" + genotype + "01.nrrd");
+	run("Nrrd ... ", "nrrd=/Users/WilsonLab/Desktop/Registration/images" + folder_path + celltype + "_" + genotype + "01.nrrd");
 
 	selectWindow("C1-" + name);
 	//for o2 folder should be "/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration/Images"
-	run("Nrrd ... ", "nrrd=/Users/WilsonLab/Desktop/Registration/Images" + folder_path + celltype + "_" + genotype + "02.nrrd");
+	run("Nrrd ... ", "nrrd=/Users/WilsonLab/Desktop/Registration/images" + folder_path + celltype + "_" + genotype + "02.nrrd");
 	
 }else if(list.length == 3){
 	selectWindow("C1-" + name);
 	//for o2 folder should be "/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration/Images"
-	run("Nrrd ... ", "nrrd=/Users/WilsonLab/Desktop/Registration/Images" + folder_path + celltype + "_" + genotype + "01.nrrd");
+	run("Nrrd ... ", "nrrd=/Users/WilsonLab/Desktop/Registration/images" + folder_path + celltype + "_" + genotype + "01.nrrd");
 
 	selectWindow("C2-" + name);
 	//for o2 folder should be "/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration/Images"
