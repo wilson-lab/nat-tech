@@ -114,7 +114,7 @@ flywireid_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder 
 #file format: 20220408(1)_JRCU2018U(2)_FC1(3)_AD(4)_GDBD(5)_01(6).tif(7)
 #returns the name of the folder where the .nrrd files are saved in the Registration folder (should be in the format of AD_GDBD_num)
 get_image_folder <- function(file_name){
-  name_arr = get_name_array(file_name)
+  name_arr = get_name_array(basename(file_name))
   #removes the .tif from the number at the end of the file name
   no_tif = strsplit(name_arr[(length(name_arr))],"[.]")
   
@@ -187,6 +187,16 @@ write_cmtkreg <- function(file_name,
   #for o2 will need to change the save file path
   #file path for munger file -> for o2 should be /Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration/commands
   command_folder <- file.path(registration_folder,"Commands")
+  image_folder <- file.path(registration_folder, "Images", folder)
+  contents <- list.files(image_folder, full.names = TRUE)
+
+  #sets the number of channels to reformat in the munger file, the max is 3 
+  if(length(contents) == 2){
+    channel_num <- "0102"
+  }else if(length(contents) == 3){
+    channel_num <- "010203"
+  }
+  
   dir.create(command_folder, showWarnings = FALSE)
   save_path = file.path(command_folder, save_file_name)
     
@@ -195,8 +205,7 @@ write_cmtkreg <- function(file_name,
             sprintf("# %s",date_time), 
             #for 02 gotta change this path to point to the unprocessed folder \"/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration\""
             sprintf("cd \"%s\"",registration_folder), 
-            sprintf("\"/Applications/Fiji.app/bin/cmtk/munger\" -b \"/Applications/Fiji.app/bin/cmtk\" -a -w -r 0102  -X 26 -C 8 -G 80 -R 4 -A \"--accuracy 0.4\" -W \"--accuracy 0.4\"  -T 4 -s \"Refbrain/%s\" images/%s", template_path, folder)
-  )
+            sprintf("\"/Applications/Fiji.app/bin/cmtk/munger\" -b \"/Applications/Fiji.app/bin/cmtk\" -a -w -r %s  -X 26 -C 8 -G 80 -R 4 -A \"--accuracy 0.4\" -W \"--accuracy 0.4\"  -T 4 -s \"Refbrain/%s\" images/%s", channel_num, template_path, folder))
   writeLines(array,con=save_path)
   #paste0("sh ", save_path)
   save_path
@@ -274,14 +283,12 @@ server.connect.cycle <- function(server="research.files.med.harvard.edu/Neurobio
 get_name_array <- function(file_name, cell = FALSE){
   #name_arr = strsplit(file_name, "_")
   #evaluate how the file name is separated with the correct characters, wil not accept a mix
-  if(grepl("_", file_name) & !(grepl("-",file_name)) &!(grepl(".",file_name))){
+  if(grepl("_", file_name) & !(grepl("-",file_name))){
     name_arr = strsplit(file_name, "_")
-  }else if(grepl("-", file_name) & !(grepl("_",file_name)) &!(grepl(".",file_name))){
+  }else if(grepl("-", file_name) & !(grepl("_",file_name))){
     name_arr = strsplit(file_name, "-")
-  }else if(grepl(".", file_name) & !(grepl("-",file_name)) &!(grepl("-",file_name))){
-    name_arr = strsplit(file_name, ".")
   }else{
-    stop("wrong file name format: separate file name with \'_\' or \'-\' or \'.\' only")
+    stop("wrong file name format: separate file name with \'_\' or \'-\' only")
   }
   name_arr = name_arr[[1]]
   
@@ -331,16 +338,20 @@ get_name_array <- function(file_name, cell = FALSE){
 }
 
 #changes file name if its not correct already
-correct_file_name <- function(full_file){
+correct_file_name <- function(full_file, full = FALSE){
   #gets the path
   path = dirname(full_file)
   #gets the array of the name in the correct order
   temp = get_name_array(basename(full_file))
-  #gets the correct file naem
+  #gets the correct file name
   new = make_file_name(temp)
   #changes the file name to the correct format
   file.rename(full_file,sprintf("%s/%s",path,new))
-  return(new)
+  if(full){
+    return(new())
+  }else{
+    return(file.path(path,new))
+  }
 }
 
 #correctly formats name of the file so that no errors are thrown when sent to FIJI macros

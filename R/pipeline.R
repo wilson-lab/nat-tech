@@ -13,10 +13,7 @@ macro1 = "R/macros/create_registration_images.ijm"
 macro2 = "R/macros/create_composite.ijm"
 to_register <- list.files(raw_data, full.names = TRUE)
 
-# check to see if there are unprocessed files, if not quit
-if(length(to_register) > 1){
-  to_register = to_register[!to_register %in% processed_data]
-}else{
+if(length(to_register) == 0){
   stop("No files to process")
 }
 
@@ -77,7 +74,7 @@ for (var in to_register) {
   
   # 7 -- read in the hemibrain cell type from the file name
   # puts the hemibrain .nrrd file in the same space registered confocal files AFTER fetching both confocal files
-  hemibrain_to_nrrd(cell_type = get_name_array(var,cell = TRUE), savefolder=reformatted_exp_folder, plot3D = FALSE)
+  hemibrain_to_nrrd(cell_type = get_name_array(file,cell = TRUE), savefolder=reformatted_exp_folder, plot3D = FALSE)
   
   # 8 -- create a composite of the hemibrain neuron and the confocal image and save in the Registration/Reformatted folder
   # creates a composite of registered image and hemibrain neuron
