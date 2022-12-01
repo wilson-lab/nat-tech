@@ -61,7 +61,7 @@ neuron_to_hemibrain()
 #converts a hemibrain neuron into a .nrrd file (to compare to a light-level image image)
 hemibrain_to_nrrd()
 
-#converts a flywire neuron into a .nrrd file (to compare to a light-level image image)
+#converts a specific flywire neuron (from its flywire id) into a .nrrd file (to compare to a light-level image image)
 flywireid_to_nrrd()
 
 #writes the cmtk registration command based on the Registration file location
@@ -227,3 +227,8 @@ Wilson](https://en.wikipedia.org/wiki/Rachel_Wilson_(neurobiologist)).
     neuroanatomical data eLife 9:e53350. [doi:
     https://doi.org/10.7554/eLife.53350](https://doi.org/10.7554/eLife.53350)
     )
+
+-   **FlyWire**: Dorkenwald, S., McKellar, C.E., Macrina, T. et
+    al. FlyWire: online community for whole-brain connectomics. Nat
+    Methods 19, 119–128 (2022).[doi:
+    https://doi.org/10.1038/s41592-021-01330-0](https://doi.org/10.1038/s41592-021-01330-0)
