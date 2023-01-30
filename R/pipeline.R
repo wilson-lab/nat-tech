@@ -10,9 +10,6 @@ source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/startup/functions.R")
 
 # 1 -- find if there is a unprocessed file in the unprocessed folder on the server
 # at the end of running registration move the file to processed folder using -  move_files(files, destinations, overwrite = FALSE)
-processed_data = c(file.path(raw_data,"processed"), file.path(raw_data,"Registration"))
-macro1 = "/Users/wilsonlab/Documents/GitHub/nat-tech/R/macros/create_registration_images.ijm"
-macro2 = "/Users/wilsonlab/Documents/GitHub/nat-tech/R/macros/create_composite.ijm"
 to_register <- list.files(raw_data, full.names = TRUE)
 
 if(length(to_register) == 0){
