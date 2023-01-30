@@ -282,7 +282,6 @@ server.connect.cycle <- function(server="research.files.med.harvard.edu/Neurobio
 #takes file name and returns an array of elements in the correct order
 #if cell is true will return the cell type and not the array
 get_name_array <- function(file_name, cell = FALSE){
-  #name_arr = strsplit(file_name, "_")
   #evaluate how the file name is separated with the correct characters, wil not accept a mix
   if(grepl("_", file_name) & !(grepl("-",file_name))){
     name_arr = strsplit(file_name, "_")
@@ -292,9 +291,9 @@ get_name_array <- function(file_name, cell = FALSE){
     stop("wrong file name format: separate file name with \'_\' or \'-\' only")
   }
   name_arr = name_arr[[1]]
-  
+
   #get index of image number
-  img_num <- grep(".tif", name_arr,ignore.case = TRUE)
+  img_num <- grep(".tif", name_arr)
   #get index of date
   date <- grep("TRUE",(grepl("^[0-9]+$", name_arr)))
   #get template of template brain
@@ -303,7 +302,7 @@ get_name_array <- function(file_name, cell = FALSE){
   
   if(length(name_arr) == 6){
     #get index of AD and DBD 
-    AD <- grep("AD", name_arr, ignore.case = TRUE)
+    AD <- grep("AD", name_arr)
     GDBD <- grep("GDBD", name_arr, ignore.case = TRUE)
     
     #get cell type from remaining fragments
@@ -313,7 +312,7 @@ get_name_array <- function(file_name, cell = FALSE){
       return(cell_type)
     }else{
       #return array in correct order
-      c(name_arr[date],template,cell_type,toupper(name_arr[AD]),toupper(name_arr[GDBD]),name_arr[img_num])
+      x = c(name_arr[date],template,cell_type,toupper(name_arr[AD]),toupper(name_arr[GDBD]),name_arr[img_num])
     }
   }else if(length(name_arr) == 5){
     #if the name of the file is shorter, assume gal4 line
