@@ -186,7 +186,7 @@ write_cmtkreg <- function(file_name,
   
   
   #for o2 will need to change the save file path
-  #file path for munger file -> for o2 should be /Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration/commands
+  #file path for munger file -> for o2 should be /Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration/Commands
   command_folder <- file.path(registration_folder,"Commands")
   image_folder <- file.path(registration_folder, "Images", folder)
   contents <- list.files(image_folder, full.names = TRUE)
@@ -206,7 +206,7 @@ write_cmtkreg <- function(file_name,
             sprintf("# %s",date_time), 
             #for 02 gotta change this path to point to the unprocessed folder \"/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration\""
             sprintf("cd \"%s\"",registration_folder), 
-            sprintf("\"/Applications/Fiji.app/bin/cmtk/munger\" -b \"/Applications/Fiji.app/bin/cmtk\" -a -w -r %s  -X 26 -C 8 -G 80 -R 4 -A \"--accuracy 0.4\" -W \"--accuracy 0.4\"  -T 4 -s \"Refbrain/%s\" images/%s", channel_num, template_path, folder))
+            sprintf("\"/Applications/Fiji.app/bin/cmtk/munger\" -b \"/Applications/Fiji.app/bin/cmtk\" -a -w -r %s  -X 26 -C 8 -G 80 -R 4 -A \"--accuracy 0.4\" -W \"--accuracy 0.4\"  -T 8 -s \"Refbrain/%s\" images/%s", channel_num, template_path, folder))
   writeLines(array,con=save_path)
   #paste0("sh ", save_path)
   save_path
