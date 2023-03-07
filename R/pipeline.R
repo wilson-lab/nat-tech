@@ -1,12 +1,13 @@
 #can't run in terminal without full path to source these files since the terminal can't see these files
 #tried cd into the correct folder using the system("cd ~/Documents/GitHub/nat-tech") command but it doesn't work (probably not permanent)
+#change these lines to your own user: Example - "/Users/[insert username]/Documents/GitHub/nat-tech/R/parameters.R"
 source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/parameters.R")
 source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/startup/packages.R")
 source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/startup/functions.R")
 
 # 0 -- set up crontab on your computer to ru the script (crontab -e)
 # example below: run scripte at 4:55pm Mon-Fri, create a log to review, point to where you have put this repository
-# 55 16 * * 1-5  /usr/local/bin/Rscript /Users/[user name]/Documents/GitHub/nat-tech/R/pipeline.R > /Users/[user name]/Documents/GitHub/nat-tech/R/jobs/day.log 2>&1
+# 35 16 * * 1-5  /usr/local/bin/Rscript /Users/[insert user name]/Documents/GitHub/nat-tech/R/pipeline.R > /Users/[insert user name]/Documents/GitHub/nat-tech/R/jobs/day.log 2>&1
 
 # 1 -- find if there is a unprocessed file in the unprocessed folder on the server
 # at the end of running registration move the file to processed folder using -  move_files(files, destinations, overwrite = FALSE)
