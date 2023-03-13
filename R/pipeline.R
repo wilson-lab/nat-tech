@@ -1,8 +1,8 @@
 #can't run in terminal without full path to source these files since the terminal can't see these files
 #change these lines to your own user: Example - "/Users/[insert username]/Documents/GitHub/nat-tech/R/parameters.R"
-source("/Users/[insert user]/Documents/GitHub/nat-tech/R/parameters.R")
-source("/Users/[insert user]/Documents/GitHub/nat-tech/R/startup/packages.R")
-source("/Users/[insert user]/Documents/GitHub/nat-tech/R/startup/functions.R")
+source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/parameters.R")
+source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/startup/packages.R")
+source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/startup/functions.R")
 
 # 0 -- set up crontab on your computer to run the script automatically(crontab -e)
 # example below: run script at 4:55pm Mon-Fri, create a log to review, point to where you have put this repository
@@ -78,6 +78,21 @@ for (var in to_register) {
   # 8 -- create a composite of the hemibrain neuron and the confocal image and save in the Registration/Reformatted folder
   # creates a composite of registered image and hemibrain neuron
   runMacro(macro = macro2, 
+           macroArg = contents[2], 
+           headless = TRUE,
+           batch = FALSE,
+           MinMem = "100m",
+           MaxMem = "25000m",
+           IncrementalGC = TRUE,
+           Threads = NULL,
+           fijiArgs = NULL,
+           javaArgs = NULL, 
+           ijArgs = NULL,
+           fijiPath = fiji.path,
+           DryRun = FALSE)
+  
+  # 8 -- create a max z projection of the image you just made and save in the Registration/Reformatted folder
+  runMacro(macro = macro3, 
            macroArg = contents[2], 
            headless = TRUE,
            batch = FALSE,
