@@ -1,5 +1,5 @@
 path = getArgument();
-name = File.getName(path);
+arg = File.getName(path);
 
 if(name=="") exit ("No argument");
 
