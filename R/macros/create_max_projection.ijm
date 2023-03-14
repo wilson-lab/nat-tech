@@ -1,13 +1,13 @@
 path = getArgument();
-arg = File.getName(path);
+name = File.getName(path);
 
 if(name=="") exit ("No argument");
 
-//arg = "/Users/wilsonlab/Desktop/Registration/Reformatted/FB8A_R31B12AD_R65C03GDBD_1/FB8AH_R31B12AD_R65C03GDBD_composite.tif";
+//path = "/Users/wilsonlab/Desktop/Registration/Reformatted/R38H08AD_VT045265GDBD_2/FB1J_R38H08AD_VT045265GDBD_composite.tif";
 //name = File.getName(arg);
 
 //get folder path
-parent_path = File.getParent(arg); 
+parent_path = File.getParent(path); 
 
 //gets the file list in the parent folder
 file_list = getFileList(parent_path);
