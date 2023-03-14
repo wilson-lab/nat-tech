@@ -1,0 +1,55 @@
+WARNING: invalid R_MAX_VSIZE ignored
+
+Loading required package: rgl
+Registered S3 method overwritten by 'nat':
+  method             from
+  as.mesh3d.ashape3d rgl 
+
+Attaching package: 'nat'
+
+The following object is masked from 'package:rgl':
+
+    wire3d
+
+The following objects are masked from 'package:base':
+
+    intersect, setdiff, union
+
+Loading required package: elmr
+Loading required package: catmaid
+Loading required package: httr
+Loading required package: nat.flybrains
+Loading required package: nat.templatebrains
+Loading required package: nat.nblast
+Loading required package: neuprintr
+Run dr_fafbseg() for a status report on your installation
+Loading required package: timechange
+
+Attaching package: 'lubridate'
+
+The following objects are masked from 'package:nat':
+
+    intersect, setdiff, union
+
+The following objects are masked from 'package:base':
+
+    date, intersect, setdiff, union
+
+Loading required package: stringr
+Adding h5reg in forward direction
+Adding h5reg in reverse direction
+Adding h5reg in forward direction
+Adding h5reg in reverse direction
+Adding h5reg in forward direction
+Adding h5reg in reverse direction
+Adding h5reg in forward direction
+Adding h5reg in reverse direction
+Adding h5reg in forward direction
+Adding h5reg in reverse direction
+Adding h5reg in forward direction
+Adding h5reg in reverse direction
+Warning messages:
+1: In rgl.init(initValue, onlyNULL) : RGL: unable to open X11 display
+2: 'rgl.init' failed, running with 'rgl.useNULL = TRUE'. 
+Error: No files to process
+Execution halted
