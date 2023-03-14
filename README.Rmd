@@ -124,10 +124,11 @@ This is what that process looks like
 
 </center>
 
-Finally, the code will run a FIJI macro to combine your reformatted images with the specified neuron from the hemibrain that got converted into a .nrrd file.
+Finally, the code will run two FIJI macros to combine your reformatted images with the specified neuron from the hemibrain that got converted into a .nrrd file and to create a max z projection of that image.
 
 ```{r echo = TRUE, eval = FALSE, include = TRUE}
 runMacro(macro = "R/macros/create_composite.ijm")
+runMacro(macro = "R/macros/create_max_projection.ijm")
 ```
 
 It should look like this

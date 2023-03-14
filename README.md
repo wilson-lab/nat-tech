@@ -111,6 +111,7 @@ That’s all you have to do! Below is code to run the pipeline in the
 terminal
 
 ``` r
+
 $ Rscript /Users/[user]/Documents/GitHub/nat-tech/R/pipeline.R
 ```
 
@@ -150,12 +151,13 @@ This is what that process looks like
 
 </center>
 
-Finally, the code will run a FIJI macro to combine your reformatted
+Finally, the code will run two FIJI macros to combine your reformatted
 images with the specified neuron from the hemibrain that got converted
-into a .nrrd file.
+into a .nrrd file and to create a max z projection of that image.
 
 ``` r
 runMacro(macro = "R/macros/create_composite.ijm")
+runMacro(macro = "R/macros/create_max_projection.ijm")
 ```
 
 It should look like this
@@ -175,6 +177,7 @@ need to edit is the “-T 4” part where the number is the number of cores.
 You can use the max number your computer has or as many as you need.
 
 ``` r
+
 sprintf(\"/Applications/Fiji.app/bin/cmtk/munger\" -b \"/Applications/Fiji.app/bin/cmtk\" -a -w -r 0102  -X 26 -C 8 -G 80 -R 4 -A \"--accuracy 0.4\" -W \"--accuracy 0.4\"  -T 4 -s \"Refbrain/%s\" images/%s", template_path, folder)
 ```
 
@@ -190,45 +193,44 @@ Wilson](https://en.wikipedia.org/wiki/Rachel_Wilson_(neurobiologist)).
 
 # References
 
--   **The hemibrain connectome (hemibrain:v1.2.1)**: Scheffer, L.K., Xu,
-    C.S., Januszewski, M., Lu, Z., Takemura, S.-Y., Hayworth, K.J.,
-    Huang, G.B., Shinomiya, K., Maitlin-Shepard, J., Berg, S., et
-    al. (2020). A connectome and analysis of the adult *Drosophila*
-    central brain. Elife 9. [doi:
-    https://doi.org/10.7554/eLife.57443](https://doi.org/10.7554/eLife.57443)
+- **The hemibrain connectome (hemibrain:v1.2.1)**: Scheffer, L.K., Xu,
+  C.S., Januszewski, M., Lu, Z., Takemura, S.-Y., Hayworth, K.J., Huang,
+  G.B., Shinomiya, K., Maitlin-Shepard, J., Berg, S., et al. (2020). A
+  connectome and analysis of the adult *Drosophila* central brain.
+  Elife 9. [doi:
+  https://doi.org/10.7554/eLife.57443](https://doi.org/10.7554/eLife.57443)
 
--   **JRC2018F brain and VNC templates**: Bogovic, J.A., Otsuna, H.,
-    Heinrich, L., Ito, M., Jeter, J., Meissner, G.W., Nern, A.,
-    Colonell, J., Malkesman, O., Ito, K., et al. (2018). An unbiased
-    template of the Drosophila brain and ventral nerve cord. bioRxiv.
-    [doi:
-    https://doi.org/10.1101/376384](https://doi.org/10.1101/376384)
+- **JRC2018F brain and VNC templates**: Bogovic, J.A., Otsuna, H.,
+  Heinrich, L., Ito, M., Jeter, J., Meissner, G.W., Nern, A., Colonell,
+  J., Malkesman, O., Ito, K., et al. (2018). An unbiased template of the
+  Drosophila brain and ventral nerve cord. bioRxiv. [doi:
+  https://doi.org/10.1101/376384](https://doi.org/10.1101/376384)
 
--   **Computational Morphometry Toolkit (CMTK)**: Rohlfing T, Maurer CR
-    Jr. Nonrigid image registration in shared-memory multiprocessor
-    environments with application to brains, breasts, and bees. IEEE
-    Trans Inf Technol Biomed. 2003 Mar;7(1):16-25. [doi:
-    10.1109/titb.2003.808506](10.1109/titb.2003.808506)
+- **Computational Morphometry Toolkit (CMTK)**: Rohlfing T, Maurer CR
+  Jr. Nonrigid image registration in shared-memory multiprocessor
+  environments with application to brains, breasts, and bees. IEEE Trans
+  Inf Technol Biomed. 2003 Mar;7(1):16-25. [doi:
+  10.1109/titb.2003.808506](10.1109/titb.2003.808506)
 
--   **FIJI**: Schindelin, J., Arganda-Carreras, I., Frise, E., Kaynig,
-    V., Longair, M., Pietzsch, T., … Cardona, A. (2012). Fiji: an
-    open-source platform for biological-image analysis. Nature Methods,
-    9(7), 676–682. <doi:10.1038/nmeth.2019>
+- **FIJI**: Schindelin, J., Arganda-Carreras, I., Frise, E., Kaynig, V.,
+  Longair, M., Pietzsch, T., … Cardona, A. (2012). Fiji: an open-source
+  platform for biological-image analysis. Nature Methods, 9(7), 676–682.
+  <doi:10.1038/nmeth.2019>
 
--   **fiji-cmtk-gui**: Kohl J, Ostrovsky AD, Frechter S, Jefferis GS. A
-    bidirectional circuit switch reroutes pheromone signals in male and
-    female brains. Cell. 2013 Dec 19;155(7):1610-23. [doi:
-    10.1016/j.cell.2013.11.025.](10.1016/j.cell.2013.11.025) PMID:
-    24360281; PMCID: PMC3898676.
+- **fiji-cmtk-gui**: Kohl J, Ostrovsky AD, Frechter S, Jefferis GS. A
+  bidirectional circuit switch reroutes pheromone signals in male and
+  female brains. Cell. 2013 Dec 19;155(7):1610-23. [doi:
+  10.1016/j.cell.2013.11.025.](10.1016/j.cell.2013.11.025) PMID:
+  24360281; PMCID: PMC3898676.
 
--   **The natverse**: Bates, A.S., Manton, J.D., Jagannathan, S.R.,
-    Costa, M., Schlegel, P., Rohlfing, T., Jefferis, G.(2020) The
-    natverse, a versatile toolbox for combining and analysing
-    neuroanatomical data eLife 9:e53350. [doi:
-    https://doi.org/10.7554/eLife.53350](https://doi.org/10.7554/eLife.53350)
-    )
+- **The natverse**: Bates, A.S., Manton, J.D., Jagannathan, S.R., Costa,
+  M., Schlegel, P., Rohlfing, T., Jefferis, G.(2020) The natverse, a
+  versatile toolbox for combining and analysing neuroanatomical data
+  eLife 9:e53350. [doi:
+  https://doi.org/10.7554/eLife.53350](https://doi.org/10.7554/eLife.53350)
+  )
 
--   **FlyWire**: Dorkenwald, S., McKellar, C.E., Macrina, T. et
-    al. FlyWire: online community for whole-brain connectomics. Nat
-    Methods 19, 119–128 (2022).[doi:
-    https://doi.org/10.1038/s41592-021-01330-0](https://doi.org/10.1038/s41592-021-01330-0)
+- **FlyWire**: Dorkenwald, S., McKellar, C.E., Macrina, T. et
+  al. FlyWire: online community for whole-brain connectomics. Nat
+  Methods 19, 119–128 (2022).[doi:
+  https://doi.org/10.1038/s41592-021-01330-0](https://doi.org/10.1038/s41592-021-01330-0)
