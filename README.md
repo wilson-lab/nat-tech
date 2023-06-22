@@ -83,7 +83,9 @@ outlined here and below.
 </center>
 
 Second, go to the `parameter.R` scripts. Edit the variables to folders
-on your local machine
+on your local machine. You will also need to edit the 3 lines at the top
+of `pipeline.R` and the top line of `functions.R` where you will need to
+change the paths so that the correct files are sourced correctly.
 
 ``` r
 #this folder is where all of your registration files are, commonly on the desktop
@@ -93,6 +95,18 @@ registration_folder = "~/Desktop/Registration"
 data_folder = "~/Desktop/to_register"
 raw_data = file.path(data_folder,"unprocessed")
 processed_data = file.path(data_folder,"processed")
+```
+
+You will also need to edit the 3 lines at the top of `pipeline.R` and
+the top line of `functions.R` where you will need to change the paths so
+that the these files are sourced correctly. It should look something
+like this.
+
+``` r
+# these are first 3 lines at the top of pipeline.R, this should be where you are storing this repository on your local machine
+source("/Users/[insert user]/Documents/GitHub/nat-tech/R/parameters.R")
+source("/Users/[insert user]/Documents/GitHub/nat-tech/R/startup/packages.R")
+source("/Users/[insert user]/Documents/GitHub/nat-tech/R/startup/functions.R")
 ```
 
 Third, save your 2 or 3 channel image as a .tif file (as shown below) in
@@ -111,7 +125,6 @@ That’s all you have to do! Below is code to run the pipeline in the
 terminal
 
 ``` r
-
 $ Rscript /Users/[user]/Documents/GitHub/nat-tech/R/pipeline.R
 ```
 

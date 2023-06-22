@@ -65,7 +65,7 @@ knitr::include_graphics("inst/images/folder_struct.png")
 
 </center>
 
-Second, go to the `parameter.R` scripts. Edit the variables to folders on your local machine
+Second, go to the `parameter.R` scripts. Edit the variables to folders on your local machine. You will also need to edit the 3 lines at the top of `pipeline.R` and the top line of `functions.R` where you will need to change the paths so that the correct files are sourced correctly. 
 
 ```{r rename, echo = TRUE, eval = FALSE, include = TRUE}
 #this folder is where all of your registration files are, commonly on the desktop
@@ -76,6 +76,17 @@ data_folder = "~/Desktop/to_register"
 raw_data = file.path(data_folder,"unprocessed")
 processed_data = file.path(data_folder,"processed")
 ```
+
+You will also need to edit the 3 lines at the top of `pipeline.R` and the top line of `functions.R` where you will need to change the paths so that the these files are sourced correctly. It should look something like this. 
+
+```{r pipeline, echo = TRUE, eval = FALSE, include = TRUE}
+# these are first 3 lines at the top of pipeline.R, this should be where you are storing this repository on your local machine
+source("/Users/[insert user]/Documents/GitHub/nat-tech/R/parameters.R")
+source("/Users/[insert user]/Documents/GitHub/nat-tech/R/startup/packages.R")
+source("/Users/[insert user]/Documents/GitHub/nat-tech/R/startup/functions.R")
+
+```
+
 
 Third, save your 2 or 3 channel image as a .tif file (as shown below) in the correct folder, this was specified in the step before. The way you name this file is also important. The format for a split-gal4 line is date_templatebrain_celltype_AD_GDBD_expnum or for a Gal4 line is date_templatebrain_celltype_Gal4_expnum.
 
@@ -90,7 +101,6 @@ knitr::include_graphics("inst/images/example_lightlevel_image.png")
 That's all you have to do! Below is code to run the pipeline in the terminal
 
 ```{r cline, echo = TRUE, eval = FALSE, include = TRUE}
-
 $ Rscript /Users/[user]/Documents/GitHub/nat-tech/R/pipeline.R
 
 ```
