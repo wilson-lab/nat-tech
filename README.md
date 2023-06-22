@@ -104,9 +104,8 @@ packages = "~/nat-tech/R/startup/packages.R"
 functs = "~/nat-tech/R/startup/functions.R" 
 ```
 
-You will also need to edit the first line at the top of `pipeline.R` and
-the top line of `functions.R` to source the `parameter.R` file that you
-edited above.
+You will also need to edit the first line at the top of `pipeline.R` to
+source the `parameter.R` file that you edited above.
 
 ``` r
 # these are first 3 lines at the top of pipeline.R, this should be where you are storing this repository on your local machine
