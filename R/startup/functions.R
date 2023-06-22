@@ -1,4 +1,4 @@
-source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/parameters.R")
+source("/Users/[INSERT USER]/Documents/GitHub/nat-tech/R/parameters.R")
 
 #this specific function doesn't work, the purpose is to read in a .nrrd file of a confocal image and plot together with a hemibrain neuron
 nrrd_to_hemibrain <- function (file, cell_type){
