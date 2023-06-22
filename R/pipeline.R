@@ -1,12 +1,12 @@
 #can't run in terminal without full path to source these files since the terminal can't see these files
 #change these lines to your own user: Example - "/Users/[insert username]/Documents/GitHub/nat-tech/R/parameters.R"
-source("/Users/[INSERT USER]/Documents/GitHub/nat-tech/R/parameters.R")
-source("/Users/[INSERT USER]/Documents/GitHub/nat-tech/R/startup/packages.R")
-source("/Users/[INSERT USER]/Documents/GitHub/nat-tech/R/startup/functions.R")
+source("/Users/[insert user]/Documents/GitHub/nat-tech/R/parameters.R")
+source("/Users/[insert user]/Documents/GitHub/nat-tech/R/startup/packages.R")
+source("/Users/[insert user]/Documents/GitHub/nat-tech/R/startup/functions.R")
 
 # 0 -- set up crontab on your computer to run the script automatically(crontab -e)
 # example below: run script at 4:55pm Mon-Fri, create a log to review, point to where you have put this repository
-# 55 16 * * 1-5  /usr/local/bin/Rscript /Users/[insert user name]/Documents/GitHub/nat-tech/R/pipeline.R > /Users/[insert user name]/Documents/GitHub/nat-tech/R/jobs/day.log 2>&1
+# 02 17 * * 1-5  /usr/local/bin/Rscript /Users/[insert user]/Documents/GitHub/nat-tech/R/pipeline.R > /Users/[insert user]/Documents/GitHub/nat-tech/R/jobs/day.log 2>&1
 
 # 1 -- find if there is a unprocessed file in the unprocessed folder on the server
 # at the end of running registration move the file to processed folder using -  move_files(files, destinations, overwrite = FALSE)
@@ -22,10 +22,12 @@ for (var in to_register) {
   
   #changes the name of the file to the correct format
   var = correct_file_name(var)
+  var_temp = paste(registration_folder, "/Images", sep=)
+  var_temp = paste(var_temp, var,sep = "-")
   
   fiji.path = neuronbridger:::fiji()
   runMacro(macro = macro1, 
-           macroArg = var, 
+           macroArg = var_temp, 
            headless = TRUE,
            batch = FALSE,
            MinMem = "100m",
@@ -105,4 +107,5 @@ for (var in to_register) {
            ijArgs = NULL,
            fijiPath = fiji.path,
            DryRun = FALSE)
+  message("got to macro3")
 }

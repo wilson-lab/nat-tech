@@ -1,3 +1,5 @@
+source("/Users/wilsonlab/Documents/GitHub/nat-tech/R/parameters.R")
+
 #this specific function doesn't work, the purpose is to read in a .nrrd file of a confocal image and plot together with a hemibrain neuron
 nrrd_to_hemibrain <- function (file, cell_type){
   print("Still being worked on")
@@ -143,7 +145,7 @@ get_registration_brain <- function(file_name, full = FALSE){
   name_arr = strsplit(file_name, "_")
   
   #get all of the template brains in the Refbrain folder
-  template_folder = list.files('/Users/WilsonLab/Desktop/Registration/Refbrain')
+  template_folder = file.path(registration_folder,"RefBrain") #list.files('/Users/WilsonLab/Desktop/Registration/Refbrain')
   
   #loop through all of the template brains in the folder and compare to template from the file name
   for(var in template_folder){
