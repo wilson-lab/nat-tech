@@ -1,8 +1,12 @@
-path = getArgument();
-name = File.getName(path);
+arg = getArgument();
+//new argument combines the registration folder location and the file location. you need to split at the "-" to get both paths
+// for testing: arg = "/Users/wilsonlab/Desktop/Registration/Images-/Volumes/Neurobio/wilsonlab/Emily/unprocessed/20211203_JRC2018U_LT51_VT049899AD_VT034811GDBD_1.tif"
+arg_split = split(arg,"-");
 
-//path = "/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/20220216_JRC2018U_vDeltaA_R11E08AD_R70H05GDBD_3.tif";
-//name = File.getName(path);
+//assign registration folder location to reg_folder and .tif location to path
+reg_folder = arg_split[0];
+path = arg_split[1];
+name = File.getName(path);
 
 if(name=="") exit ("No argument");
 
@@ -20,13 +24,13 @@ if(name_array.length == 6){
 	celltype = name_array[2];
 	genotype = name_array[3] + "_" + name_array[4] + "_";
 	folder_path = "/" + genotype + name_array[5] + "/";
-	File.makeDirectory("/Users/WilsonLab/Desktop/Registration/Images/" + genotype + name_array[5]);
+	File.makeDirectory(reg_folder + "/" + genotype + name_array[5]);
 	
 }else if(name_array.lenth == 5){
 	celltype = name_array[2];
 	genotype = name_array[3];
 	folder_path = "/" + genotype + name_array[4] + "/";
-	File.makeDirectory("/Users/WilsonLab/Desktop/Registration/images/" + genotype + name_array[4]);
+	File.makeDirectory(reg_folder + "/" + genotype + name_array[5]);
 }
 
 //handle 3 channels
@@ -35,24 +39,24 @@ list = getList("image.titles");
 if(list.length==2){
 	selectWindow("C2-" + name);
 	//for o2 folder should be "/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration/Images"
-	run("Nrrd ... ", "nrrd=/Users/WilsonLab/Desktop/Registration/images" + folder_path + celltype + "_" + genotype + "01.nrrd");
+	run("Nrrd ... ", "nrrd=" + reg_folder + "/" + folder_path + celltype + "_" + genotype + "01.nrrd");
 
 	selectWindow("C1-" + name);
 	//for o2 folder should be "/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration/Images"
-	run("Nrrd ... ", "nrrd=/Users/WilsonLab/Desktop/Registration/images" + folder_path + celltype + "_" + genotype + "02.nrrd");
+	run("Nrrd ... ", "nrrd=" + reg_folder + "/" + folder_path + celltype + "_" + genotype + "02.nrrd");
 	
 }else if(list.length == 3){
 	selectWindow("C1-" + name);
 	//for o2 folder should be "/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration/Images"
-	run("Nrrd ... ", "nrrd=/Users/WilsonLab/Desktop/Registration/images" + folder_path + celltype + "_" + genotype + "01.nrrd");
+	run("Nrrd ... ", "nrrd=" + reg_folder + "/" + folder_path + celltype + "_" + genotype + "01.nrrd");
 
 	selectWindow("C2-" + name);
 	//for o2 folder should be "/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration/Images"
-	run("Nrrd ... ", "nrrd=/Users/WilsonLab/Desktop/Registration/Images" + folder_path + celltype + "_" + genotype + "02.nrrd");
+	run("Nrrd ... ", "nrrd=" + reg_folder + "/" + folder_path + celltype + "_" + genotype + "02.nrrd");
 	
 	selectWindow("C3-" + name);
 	//for o2 folder should be "/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration/Images"
-	run("Nrrd ... ", "nrrd=/Users/WilsonLab/Desktop/Registration/Images" + folder_path + celltype + "_" + genotype + "03.nrrd");
+	run("Nrrd ... ", "nrrd=" + reg_folder + "/" + folder_path + celltype + "_" + genotype + "03.nrrd");
 }
 
 run("Close All");
