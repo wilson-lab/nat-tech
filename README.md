@@ -108,7 +108,7 @@ You will also need to edit the first line at the top of `pipeline.R` to
 source the `parameter.R` file that you edited above.
 
 ``` r
-# these are first 3 lines at the top of pipeline.R, this should be where you are storing this repository on your local machine
+# this is the first line of the pipeline code and it ensures that you are sourcing everything correctly
 source("~/nat-tech/R/parameters.R")
 ```
 
