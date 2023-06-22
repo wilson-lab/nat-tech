@@ -1,8 +1,8 @@
 #can't run in terminal without full path to source these files since the terminal can't see these files
 #change these lines to your own user: Example - "/Users/[insert username]/Documents/GitHub/nat-tech/R/parameters.R"
-source("/Users/[insert user]/Documents/GitHub/nat-tech/R/parameters.R")
-source("/Users/[insert user]/Documents/GitHub/nat-tech/R/startup/packages.R")
-source("/Users/[insert user]/Documents/GitHub/nat-tech/R/startup/functions.R")
+source("/Users/[INSERT USER]/Documents/GitHub/nat-tech/R/parameters.R")
+source(packages)
+source(functs)
 
 # 0 -- set up crontab on your computer to run the script automatically(crontab -e)
 # example below: run script at 4:55pm Mon-Fri, create a log to review, point to where you have put this repository
