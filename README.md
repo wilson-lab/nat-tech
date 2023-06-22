@@ -95,18 +95,22 @@ registration_folder = "~/Desktop/Registration"
 data_folder = "~/Desktop/to_register"
 raw_data = file.path(data_folder,"unprocessed")
 processed_data = file.path(data_folder,"processed")
+
+macro1 = "~/nat-tech/R/macros/create_registration_images.ijm"
+macro2 = "~/nat-tech/R/macros/create_composite.ijm"
+macro3 = "~/nat-tech/R/macros/create_max_projection.ijm"
+ 
+packages = "~/nat-tech/R/startup/packages.R"
+functs = "~/nat-tech/R/startup/functions.R" 
 ```
 
-You will also need to edit the 3 lines at the top of `pipeline.R` and
-the top line of `functions.R` where you will need to change the paths so
-that the these files are sourced correctly. It should look something
-like this.
+You will also need to edit the first line at the top of `pipeline.R` and
+the top line of `functions.R` to source the `parameter.R` file that you
+edited above.
 
 ``` r
 # these are first 3 lines at the top of pipeline.R, this should be where you are storing this repository on your local machine
-source("/Users/[insert user]/Documents/GitHub/nat-tech/R/parameters.R")
-source("/Users/[insert user]/Documents/GitHub/nat-tech/R/startup/packages.R")
-source("/Users/[insert user]/Documents/GitHub/nat-tech/R/startup/functions.R")
+source("~/nat-tech/R/parameters.R")
 ```
 
 Third, save your 2 or 3 channel image as a .tif file (as shown below) in
