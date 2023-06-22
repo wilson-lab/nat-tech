@@ -1,6 +1,9 @@
-#can't run in terminal without full path to source these files since the terminal can't see these files
-#change these lines to your own user: Example - "/Users/[insert username]/Documents/GitHub/nat-tech/R/parameters.R"
+# can't run in terminal without full path to source these files since the terminal can't see these files
+# change these lines to your own user: Example - "/Users/[insert username]/Documents/GitHub/nat-tech/R/parameters.R"
+####CHANGE THIS LINE#####
 source("/Users/[INSERT USER]/Documents/GitHub/nat-tech/R/parameters.R")
+
+#sources the packages and functions needed to run this code
 source(packages)
 source(functs)
 
@@ -21,8 +24,8 @@ if(length(to_register) == 0){
 for (var in to_register) {
   
   #changes the name of the file to the correct format
-  var = correct_file_name(var)
-  var_temp = paste(registration_folder, "/Images", sep=)
+  var = correct_file_name(var, reg_folder = registration_folder)
+  var_temp = paste(registration_folder, "/Images", sep="")
   var_temp = paste(var_temp, var,sep = "-")
   
   fiji.path = neuronbridger:::fiji()
@@ -42,7 +45,7 @@ for (var in to_register) {
   
   # 3 -- for each confocal file, set up a registration,
   # get the template brain from the file name
-  template = get_registration_brain(var, full = TRUE)
+  template = get_registration_brain(var, full =TRUE, reg_folder=registration_folder)
   
   # create the CMTK registration .sh file
   munger_name = write_cmtkreg(var,template_path = template,registration_folder=registration_folder)
