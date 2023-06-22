@@ -1,5 +1,3 @@
-source("/Users/[INSERT USER]/Documents/GitHub/nat-tech/R/parameters.R")
-
 #this specific function doesn't work, the purpose is to read in a .nrrd file of a confocal image and plot together with a hemibrain neuron
 nrrd_to_hemibrain <- function (file, cell_type){
   print("Still being worked on")
@@ -116,8 +114,8 @@ flywireid_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder 
 
 #file format: 20220408(1)_JRCU2018U(2)_FC1(3)_AD(4)_GDBD(5)_01(6).tif(7)
 #returns the name of the folder where the .nrrd files are saved in the Registration folder (should be in the format of AD_GDBD_num)
-get_image_folder <- function(file_name){
-  name_arr = get_name_array(basename(file_name))
+get_image_folder <- function(file_name, reg_folder){
+  name_arr = get_name_array(basename(file_name), reg_folder=reg_folder)
   #removes the .tif from the number at the end of the file name
   no_tif = strsplit(name_arr[(length(name_arr))],"[.]")
   
@@ -139,13 +137,13 @@ time_date_format <- function(){
 
 #gets the correct name of the template brain
 #if full is true will return the full name of the file, otherwise will just return shortened version
-get_registration_brain <- function(file_name, full = FALSE){
+get_registration_brain <- function(file_name, full = FALSE, reg_folder){
   #file_name = basename(file_name)
   #split the name at "_" and set the template name
   name_arr = strsplit(file_name, "_")
   
   #get all of the template brains in the Refbrain folder
-  template_folder = file.path(registration_folder,"RefBrain") #list.files('/Users/WilsonLab/Desktop/Registration/Refbrain')
+  template_folder = list.files(file.path(reg_folder,"RefBrain")) #list.files('/Users/WilsonLab/Desktop/Registration/Refbrain')
   
   #loop through all of the template brains in the folder and compare to template from the file name
   for(var in template_folder){
@@ -182,7 +180,7 @@ write_cmtkreg <- function(file_name,
                           template_path = "JRC2018U_38um_iso_16bit.nrrd",
                           registration_folder = "~/Desktop/Registration"){
   #might need to change this
-  folder = get_image_folder(file_name)
+  folder = get_image_folder(file_name, reg_folder=registration_folder)
   date_time = time_date_format()
   save_file_name = sprintf("munger_%s.command", date_time)
   
@@ -283,7 +281,7 @@ server.connect.cycle <- function(server="research.files.med.harvard.edu/Neurobio
 
 #takes file name and returns an array of elements in the correct order
 #if cell is true will return the cell type and not the array
-get_name_array <- function(file_name, cell = FALSE){
+get_name_array <- function(file_name, cell = FALSE, reg_folder){
   #evaluate how the file name is separated with the correct characters, wil not accept a mix
   if(grepl("_", file_name) & !(grepl("-",file_name))){
     name_arr = strsplit(file_name, "_")
@@ -299,7 +297,7 @@ get_name_array <- function(file_name, cell = FALSE){
   #get index of date
   date <- grep("TRUE",(grepl("^[0-9]+$", name_arr)))
   #get template of template brain
-  template <- get_registration_brain(file_name)
+  template <- get_registration_brain(file_name, reg_folder=reg_folder) # problem - 
   template_loc <- grep(template, name_arr,ignore.case = TRUE)
   
   if(length(name_arr) == 6){
@@ -340,11 +338,11 @@ get_name_array <- function(file_name, cell = FALSE){
 }
 
 #changes file name if its not correct already
-correct_file_name <- function(full_file, full = FALSE){
+correct_file_name <- function(full_file, full = FALSE, reg_folder){
   #gets the path
   path = dirname(full_file)
   #gets the array of the name in the correct order
-  temp = get_name_array(basename(full_file))
+  temp = get_name_array(basename(full_file), reg_folder=reg_folder)
   #gets the correct file name
   new = make_file_name(temp)
   #changes the file name to the correct format
