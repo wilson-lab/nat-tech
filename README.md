@@ -112,9 +112,11 @@ source the `parameter.R` file that you edited above.
 source("~/nat-tech/R/parameters.R")
 ```
 
-Third, save your 2 or 3 channel image as a .tif file (as shown below) in
-the correct folder, this was specified in the step before. The way you
-name this file is also important. The format for a split-gal4 line is
+Third, save your 2 channel image as a .tif file (as shown below) in the
+correct folder, this was specified in the step before. The first channel
+should be your GFP channel and the second channel should be the channel
+with the background stain. The way you name this file is also important.
+The format for a split-gal4 line is
 date_templatebrain_celltype_AD_GDBD_expnum or for a Gal4 line is
 date_templatebrain_celltype_Gal4_expnum.
 
