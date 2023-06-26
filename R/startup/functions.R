@@ -177,8 +177,8 @@ get_registration_brain <- function(file_name, full = FALSE, reg_folder){
 #need a function to make the cmtkreg to run in terminal 
 #only works for a very specific file name date_celltype_AD_GDBD_num
 write_cmtkreg <- function(file_name,
-                          template_path = "JRC2018U_38um_iso_16bit.nrrd",
-                          registration_folder = "~/Desktop/Registration"){
+                          template_path = "JRC2018U_38um_iso_16bit.nrrd", #the default is JRC2018U
+                          registration_folder = "~/Desktop/Registration"){ #the default is that your registration folder is on the desktop
   #might need to change this
   folder = get_image_folder(file_name, reg_folder=registration_folder)
   date_time = time_date_format()
@@ -186,7 +186,6 @@ write_cmtkreg <- function(file_name,
   
   
   #for o2 will need to change the save file path
-  #file path for munger file -> for o2 should be /Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration/Commands
   command_folder <- file.path(registration_folder,"Commands")
   image_folder <- file.path(registration_folder, "Images", folder)
   contents <- list.files(image_folder, full.names = TRUE)
@@ -204,7 +203,6 @@ write_cmtkreg <- function(file_name,
   #creates the array of the commands for the cmtk registration
   array = c("#!/bin/bash", 
             sprintf("# %s",date_time), 
-            #for 02 gotta change this path to point to the unprocessed folder \"/Volumes/Neurobio/Wilson Lab/Emily/unprocessed/Registration\""
             sprintf("cd \"%s\"",registration_folder), 
             sprintf("\"/Applications/Fiji.app/bin/cmtk/munger\" -b \"/Applications/Fiji.app/bin/cmtk\" -a -w -r %s  -X 26 -C 8 -G 80 -R 4 -A \"--accuracy 0.4\" -W \"--accuracy 0.4\"  -T 8 -s \"Refbrain/%s\" images/%s", channel_num, template_path, folder))
   writeLines(array,con=save_path)
