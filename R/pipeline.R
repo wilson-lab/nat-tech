@@ -1,20 +1,20 @@
-# can't run in terminal without full path to source these files since the terminal can't see these files
-# change these lines to your own user: Example - "/Users/[insert username]/Documents/GitHub/nat-tech/R/parameters.R"
-####CHANGE THIS LINE#####
-source("/Users/[INSERT USER]/Documents/GitHub/nat-tech/R/parameters.R")
+# You can't run this code in terminal without full path to source these files since the terminal can't see these files
+# change these lines to your own user: Example - "/Users/[INSERT USER]/Documents/GitHub/nat-tech/R/parameters.R"
 
-#sources the packages and functions needed to run this code
+#### CHANGE THIS LINE #####
+source("~/nat-tech/R/parameters.R")
+
+#sources the packages and functions needed to run this code, the paths can be found in parameters.R
 source(packages)
 source(functs)
 
 # 0 -- set up crontab on your computer to run the script automatically(crontab -e)
 # example below: run script at 4:55pm Mon-Fri, create a log to review, point to where you have put this repository
-# 02 17 * * 1-5  /usr/local/bin/Rscript /Users/[insert user]/Documents/GitHub/nat-tech/R/pipeline.R > /Users/[insert user]/Documents/GitHub/nat-tech/R/jobs/day.log 2>&1
+# 02 17 * * 1-5  /usr/local/bin/Rscript /Users/[INSERT USER]/Documents/GitHub/nat-tech/R/pipeline.R > /Users/[INSERT USER]/Documents/GitHub/nat-tech/R/jobs/day.log 2>&1
 
 # 1 -- find if there is a unprocessed file in the unprocessed folder on the server
 # at the end of running registration move the file to processed folder using -  move_files(files, destinations, overwrite = FALSE)
 to_register <- list.files(raw_data, full.names = TRUE)
-
 if(length(to_register) == 0){
   stop("No files to process")
 }
@@ -25,9 +25,13 @@ for (var in to_register) {
   
   #changes the name of the file to the correct format
   var = correct_file_name(var, reg_folder = registration_folder)
+  
+  #sends the fiji macro the location of the Registration folder 
   var_temp = paste(registration_folder, "/Images", sep="")
   var_temp = paste(var_temp, var,sep = "-")
   
+  # 2.5 -- runs a fiji macro to split your .tif file into the correct .nrrd files and saves them in the Registration folder under Images
+  # saves the images in a folder - AD_GDBD_expnum
   fiji.path = neuronbridger:::fiji()
   runMacro(macro = macro1, 
            macroArg = var_temp, 

@@ -1,10 +1,10 @@
 # USER enter the path to your unregistered data here:
 
 #path to where your registration folder is
-registration_folder = "/Users/[INSERT USER]/Desktop/Registration"
+registration_folder = "~/Desktop/Registration"
 
-#the data you want the pipeline to process
-data_folder = "/Volumes/Neurobio/[INSERT USER]/Emily"
+#the data you want the pipeline to process, folder can be named anything
+data_folder = "~/Desktop/to_register" 
 
 #folder where unprocessed tif files are, located in the data_folder
 raw_data = file.path(data_folder,"unprocessed")
@@ -13,10 +13,11 @@ raw_data = file.path(data_folder,"unprocessed")
 processed_data = file.path(data_folder,"processed")
 
 #paths to FIJI macros used to register and create composite images 
-macro1 = "/Users/[INSERT USER]/Documents/GitHub/nat-tech/R/macros/create_registration_images.ijm"
-macro2 = "/Users/[INSERT USER]/Documents/GitHub/nat-tech/R/macros/create_composite.ijm"
-macro3 = "/Users/[INSERT USER]/Documents/GitHub/nat-tech/R/macros/create_max_projection.ijm"
+macro1 = "~/nat-tech/R/macros/create_registration_images.ijm"
+macro2 = "~/nat-tech/R/macros/create_composite.ijm"
+macro3 = "~/nat-tech/R/macros/create_max_projection.ijm"
 
-param = ""
-packages = "/Users/[INSERT USER]/Documents/GitHub/nat-tech/R/startup/packages.R"
-functs = "/Users/[INSERT USER]/Documents/GitHub/nat-tech/R/startup/functions.R"
+#paths to source the right startup code
+packages = "~/nat-tech/R/startup/packages.R"
+functs = "~/nat-tech/R/startup/functions.R"
+
