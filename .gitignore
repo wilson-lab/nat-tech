@@ -16,7 +16,6 @@
 .rda
 *.rds
 
-
 # Example code in package build process
 *-Ex.R
 
@@ -63,3 +62,7 @@ Thumbs.db
 *.nd2
 *.nrrd
 *.tif
+
+# neuron filrd
+*.obj
+*.swc
