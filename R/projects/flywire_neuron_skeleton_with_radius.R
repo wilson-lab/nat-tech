@@ -5,7 +5,7 @@ library(nat.jrcbrains)
 library(elmr)
 
 # Get registrations if you have not done so already
-nat.jrcbrains::download_saalfeldlab_registrations()
+# nat.jrcbrains::download_saalfeldlab_registrations()
 nat.jrcbrains::register_saalfeldlab_registrations()
 
 # Get directories
@@ -70,7 +70,7 @@ for(obj in objs){
     iter_lim = 4,
     epsilon = 0.05,
     precision = 1e-06,
-    validate = FALSE,
+    validate = TRUE,
     method.radii = "knn", # c("knn", "ray"),
     method = c("wavefront"), # "vertex_clusters", "edge_collapse", "teasar", "tangent_ball"),
     heal = TRUE,
@@ -85,7 +85,7 @@ for(obj in objs){
     n_rays = 20,
     projection = "sphere", #c("sphere", "tangents"),
     fallback = "knn",
-    waves = 1,
+    waves = 2,
     step_size = 1,
     sampling_dist = 500,
     cluster_pos = "median", #c("median", "center"),
@@ -101,17 +101,18 @@ for(obj in objs){
 # save swc
 write.neurons(nl = fw.meshes.skels,
               dir = swc.dir,
-              files = names(fw.neurons.split),
+              files = names(fw.meshes.skels),
               Force = TRUE,
               format = "swc") 
 
 # check it looks okay
-plot3d(fw.meshes.t, alpha = 0.3)
-plot3d(fw.meshes.skels, lwd = 2, col = "black")
+nopen3d()
+plot3d(JRC2018F, alpha = 0.1)
+plot3d(fw.meshes.skels, lwd = 0.1)
 for(n in 1:length(fw.meshes.skels)){
   swc <- fw.meshes.skels[[n]]$d
-  p <- points3d(nat::xyzmatrix(swc))
-  spheres3d(p, radius = swc$R, col = n)
+  p <- nat::xyzmatrix(swc)
+  spheres3d(p, radius = swc$W, color=rainbow(2)[n])
 }
-
+plot3d(fw.meshes.t, alpha = 0.3)
 

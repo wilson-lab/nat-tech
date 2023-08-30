@@ -362,3 +362,52 @@ make_file_name <- function(arr){
   }
   
 }
+
+# Downlad hemibrain mesh
+download_hemibrain_obj <- function (segments, save.obj = getwd(), ratio = 1, ...){
+  # Mesh data source
+  trimmed_dataset = stringr::str_match("hemibrain:v1.2.1", ".+:v[^.]+\\.[^.]+")
+  cloudvolume.url = sprintf("precomputed://gs://neuroglancer-janelia-flyem-%s/segmentation", 
+                            sub(":", "/", trimmed_dataset, fixed = T))
+  fafbseg:::py_skel_imports()
+  fafbseg:::py_cloudvolume(cloudvolume.url, ...)
+  neurons = nat::neuronlist()
+  message("Saving .obj files in: ", save.obj)
+  pb <- progress::progress_bar$new(format = "  downloading [:bar] :current/:total eta: :eta", 
+                                   total = length(segments), clear = FALSE, show_after = 1)
+  for (id in segments) {
+    pb$tick()
+    reticulate::py_run_string(sprintf("id=%s", id), ...)
+    counter = 3
+    while (counter > 0) {
+      res = try(reticulate::py_run_string("m = vol.mesh.get(id)[id]", 
+                                          ...), silent = TRUE)
+      if (class(res)[1] == "try-error") {
+        if (grepl("HTTPError|Server", res)) {
+          counter = counter - 1
+          Sys.sleep(1)
+        }
+        else {
+          break
+        }
+      }
+      else {
+        break
+      }
+    }
+    if (class(res)[1] == "try-error") {
+      warning(as.character(res))
+    }
+    else {
+      reticulate::py_run_string("m = tm.Trimesh(m.vertices, m.faces)", 
+                                ...)
+      if (ratio != 1) {
+        reticulate::py_run_string(sprintf("m = sk.pre.simplify(m, ratio=%s)", 
+                                          ratio), ...)
+      }
+      ff = file.path(save.obj, paste0(id, ".obj"))
+      reticulate::py_run_string(sprintf("s = m.export('%s')", 
+                                        ff), ...)
+    }
+  }
+}

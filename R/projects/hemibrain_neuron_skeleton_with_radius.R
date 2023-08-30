@@ -4,9 +4,10 @@ library(hemibrainr)
 library(nat.templatebrains)
 library(nat.jrcbrains)
 library(elmr)
+source("R/startup/functions.R")
 
 # Get registrations if you have not done so already
-nat.jrcbrains::download_saalfeldlab_registrations()
+# nat.jrcbrains::download_saalfeldlab_registrations()
 nat.jrcbrains::register_saalfeldlab_registrations()
 
 # Get directories
@@ -17,11 +18,12 @@ dir.create(swc.dir, showWarnings = FALSE, recursive = TRUE)
 
 # Select AOTU19
 hb <- neuprintr::neuprint_search(search = "AOTU019", field = "type")
-hb.ids <- hb$root_id
+hb.ids <- as.character(hb$bodyid)
+
 
 # Read mesh data
-# hb.meshes <- hemibrainr::hemibrain_neuron_meshes(hb.ids) # for some reason does not retain normals
-fafbseg::download_neuron_obj(hb.ids, save.obj = obj.dir)
+# hb.meshes <- hemibrainr::hemibrain_neuron_meshes(hb.ids,cloudvolume.url=cloudvolume.url) # for some reason does not retain normals
+download_hemibrain_obj(hb.ids, save.obj = obj.dir)
 objs <- list.files(obj.dir, full.names = TRUE)
 hb.meshes <- nat::neuronlist()
 for(obj in objs){
@@ -47,6 +49,7 @@ for(m in names(hb.meshes.t)){
 # Skeletonise with radius information.
 ## see ?skeletor for arguments
 ## At this point you can try using instead: https://neuromorpho.org/xyz2swc/ui/
+## May need to tweak these parameters
 hb.meshes.skels <- nat::neuronlist()
 for(obj in objs){
   message("Working on: ", obj)
@@ -57,7 +60,7 @@ for(obj in objs){
     save.obj = NULL,
     cloudvolume.url = getOption("fafbseg.cloudvolume.url"),
     operator = c("umbrella", "contangent"),
-    clean = FALSE,
+    clean = TRUE,
     remove_disconnected = 10,
     theta = 0.01,
     radius = TRUE,
@@ -67,7 +70,7 @@ for(obj in objs){
     iter_lim = 4,
     epsilon = 0.05,
     precision = 1e-06,
-    validate = FALSE,
+    validate = TRUE,
     method.radii = "knn", # c("knn", "ray"),
     method = c("wavefront"), # "vertex_clusters", "edge_collapse", "teasar", "tangent_ball"),
     heal = TRUE,
@@ -82,7 +85,7 @@ for(obj in objs){
     n_rays = 20,
     projection = "sphere", #c("sphere", "tangents"),
     fallback = "knn",
-    waves = 1,
+    waves = 2,
     step_size = 1,
     sampling_dist = 500,
     cluster_pos = "median", #c("median", "center"),
@@ -98,17 +101,18 @@ for(obj in objs){
 # save swc
 write.neurons(nl = hb.meshes.skels,
               dir = swc.dir,
-              files = names(fw.neurons.split),
+              files = names(hb.meshes.skels),
               Force = TRUE,
               format = "swc") 
 
 # check it looks okay
-plot3d(hb.meshes.t, alpha = 0.3)
-plot3d(hb.meshes.skels, lwd = 2, col = "black")
+nopen3d()
+plot3d(JRC2018F, alpha = 0.1)
+plot3d(hb.meshes.skels, lwd = 0.1)
 for(n in 1:length(hb.meshes.skels)){
   swc <- hb.meshes.skels[[n]]$d
-  p <- points3d(nat::xyzmatrix(swc))
-  spheres3d(p, radius = swc$R, col = n)
+  p <- nat::xyzmatrix(swc)
+  spheres3d(p, radius = swc$W, color=rainbow(2)[n])
 }
-
+plot3d(hb.meshes.t, alpha = 0.3)
 
