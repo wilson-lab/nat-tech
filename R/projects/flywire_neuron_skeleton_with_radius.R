@@ -10,6 +10,7 @@ nat.jrcbrains::register_saalfeldlab_registrations()
 
 # Get directories
 obj.dir <- file.path("data","obj","flywire")
+obj.dir.simp <- file.path(obj.dir,"simplified")
 dir.create(obj.dir, showWarnings = FALSE, recursive = TRUE)
 swc.dir <- file.path("data","swc", "flywire")
 dir.create(swc.dir, showWarnings = FALSE, recursive = TRUE)
@@ -46,12 +47,37 @@ for(m in names(fw.meshes.t)){
   Rvcg::vcgObjWrite(mesh = mesh, 
                     filename = filename, 
                     writeNormals = TRUE)
+  
+  # Simplify the mesh if you need to, to make skeletor faster and to use xyz2swc
+  # But note that the ratio argument in skeletor call already does this, same as percent here
+  filename2 <- file.path(obj.dir,'simplified',m)
+  mesh.decim <- Rvcg::vcgQEdecim(mesh = mesh, 
+                                 tarface=NULL, 
+                                 percent=0.1, # change this variable
+                                 edgeLength=NULL, 
+                                 topo=FALSE, 
+                                 quality=TRUE, 
+                                 bound=FALSE, 
+                                 optiplace=FALSE, 
+                                 scaleindi=TRUE, 
+                                 normcheck=TRUE, 
+                                 qweightFactor=100, 
+                                 qthresh=0.3,
+                                 boundweight=1, 
+                                 normalthr=pi/2, 
+                                 silent=FALSE)
+  mesh.decim <- Morpho::updateNormals(mesh.decim, angle = TRUE)
+  Rvcg::vcgObjWrite(mesh = mesh.decim, 
+                    filename = filename2, 
+                    writeNormals = TRUE)
 }
 
 # Skeletonise with radius information.
 ## see ?skeletor for arguments
 ## At this point you can try using instead: https://neuromorpho.org/xyz2swc/ui/
+## May need to tweak these parameters
 fw.meshes.skels <- nat::neuronlist()
+objs <- list.files(obj.dir.simp, full.names = TRUE)
 for(obj in objs){
   message("Working on: ", obj)
   fw.meshes.skel<- skeletor(
@@ -65,7 +91,7 @@ for(obj in objs){
     remove_disconnected = 10,
     theta = 0.01,
     radius = TRUE,
-    ratio = 0.1,
+    ratio = 1, #0.1,
     SL = 10,
     WH0 = 2,
     iter_lim = 4,
