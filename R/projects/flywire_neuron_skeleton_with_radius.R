@@ -78,6 +78,7 @@ for(m in names(fw.meshes.t)){
 ## May need to tweak these parameters
 fw.meshes.skels <- nat::neuronlist()
 objs <- list.files(obj.dir.simp, full.names = TRUE)
+objs <- objs[grepl("\\.obj$",objs)]
 for(obj in objs){
   message("Working on: ", obj)
   fw.meshes.skel<- skeletor(
