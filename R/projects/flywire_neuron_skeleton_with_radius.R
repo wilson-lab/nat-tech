@@ -28,6 +28,7 @@ fw.ids <- fw.select$root_id
 # fw.meshes <- fafbseg::read_cloudvolume_meshes(fw.ids) # for some reason does not retain normals
 fafbseg::download_neuron_obj(fw.ids, save.obj = obj.dir)
 objs <- list.files(obj.dir, full.names = TRUE)
+objs <- objs[grepl("\\.obj$",objs)]
 fw.meshes <- nat::neuronlist()
 for(obj in objs){
   message("Working on: ", obj)
