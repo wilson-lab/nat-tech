@@ -26,6 +26,7 @@ hb.ids <- as.character(hb$bodyid)
 # hb.meshes <- hemibrainr::hemibrain_neuron_meshes(hb.ids,cloudvolume.url=cloudvolume.url) # for some reason does not retain normals
 download_hemibrain_obj(hb.ids, save.obj = obj.dir)
 objs <- list.files(obj.dir, full.names = TRUE)
+objs <- objs[grepl("\\.obj$",objs)]
 hb.meshes <- nat::neuronlist()
 for(obj in objs){
   message("Working on: ", obj)
@@ -91,7 +92,7 @@ for(obj in objs){
     remove_disconnected = 10,
     theta = 0.01,
     radius = TRUE,
-    ratio = 1,
+    ratio = 0.05,
     SL = 10,
     WH0 = 2,
     iter_lim = 4,
