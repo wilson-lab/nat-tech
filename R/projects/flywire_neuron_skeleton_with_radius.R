@@ -18,11 +18,15 @@ dir.create(swc.dir, showWarnings = FALSE, recursive = TRUE)
 # Get meta data, if this does not work for you obtain data here: https://github.com/flyconnectome/flywire_annotations
 #ft <- fafbseg::flytable_query("select _id, root_id, root_630, supervoxel_id, proofread, status, pos_x, pos_y, pos_z, nucleus_id, soma_x, soma_y, soma_z, side, ito_lee_hemilineage, hartenstein_hemilineage, top_nt, flow, super_class, cell_class, cell_type, hemibrain_type, root_duplicated from info")
 #ft <- as.data.frame(ft)
-ft <-  read.table("data/Supplemental_file1_annotations.tsv", header=TRUE, sep="\t", quote = "")
+ft <-  read.table("data/Supplemental_file1_annotations.tsv", 
+                  header=TRUE, 
+                  sep="\t", 
+                  quote = "",
+                  colClasses=c("root_id"="character"))
 
 # Select AOTU19
 fw.select <- subset(ft, hemibrain_type=="AOTU019")
-fw.ids <- fw.select$root_id
+fw.ids <- as.character(fw.select$root_id)
 
 # Read mesh data
 # fw.meshes <- fafbseg::read_cloudvolume_meshes(fw.ids) # for some reason does not retain normals
@@ -78,7 +82,7 @@ for(m in names(fw.meshes.t)){
 ## At this point you can try using instead: https://neuromorpho.org/xyz2swc/ui/
 ## May need to tweak these parameters
 fw.meshes.skels <- nat::neuronlist()
-objs <- list.files(obj.dir.simp, full.names = TRUE)
+objs <- list.files(obj.dir, full.names = TRUE)
 objs <- objs[grepl("\\.obj$",objs)]
 for(obj in objs){
   message("Working on: ", obj)
@@ -93,7 +97,7 @@ for(obj in objs){
     remove_disconnected = 10,
     theta = 0.01,
     radius = TRUE,
-    ratio = 1, #0.1,
+    ratio = 0.1,
     SL = 10,
     WH0 = 2,
     iter_lim = 4,
@@ -114,7 +118,7 @@ for(obj in objs){
     n_rays = 20,
     projection = "sphere", #c("sphere", "tangents"),
     fallback = "knn",
-    waves = 2,
+    waves = 1,
     step_size = 1,
     sampling_dist = 500,
     cluster_pos = "median", #c("median", "center"),
