@@ -24,26 +24,18 @@ for (i = 0; i < file_list.length; i++) {
 		full_path = parent_path + "/" + file_list[i];
 		//opens .tif file
 		open(full_path);
-		//assigns the name of the file to a variable 
-		to_composite = file_list[i];
+		
+		//run max z projection on the to_composite file
+    run("Z Project...", "projection=[Max Intensity]");
+    run("32-bit");
+
+    to_composite = file_list[i];
+    save_name = "MAX_" + to_composite;
+    //save as a .tif file with MAX_ and then original name
+    saveAs("Tiff", parent_path + "/" + save_name);
+    close();
 	}else if ((i == file_list.length - 1) && to_composite == ""){
 		//will exit the macro if the for loop has iterated through all files and has not assigned the to_composite variable - meaning there is no .tif file
 		exit("no .tif files");
 	}
 }
-
-//select the open window
-selectWindow(to_composite);
-
-//run max z projection on the to_composite file
-run("Z Project...", "projection=[Max Intensity]");
-run("32-bit");
-
-save_name = "MAX_" + to_composite;
-//save as a .tif file with MAX_ and then original name
-saveAs("Tiff", parent_path + "/" + save_name);
-close();
-
-//select original window and close
-selectWindow(to_composite);
-close();

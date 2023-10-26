@@ -87,12 +87,12 @@ hemibrain_to_nrrd <- function(cell_type, ref="JRC2018U", savefolder = "data", pl
 
 
 # write flywire neuron to nrrd, sample = "FAFB14", xyzmatrix
-flywireid_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder = "data", plot3D =TRUE){
+flywireid_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder = "data", plot3D =TRUE, compressed = FALSE, max_projection = TRUE){
   #read in flywire ID
-  flywire_neuron <- read_cloudvolume_meshes(flywire_id)
+  flywire_neuron <- fafbseg::read_cloudvolume_meshes(flywire_id)
   
   #transform neuron into the correct template space
-  flywire.reg = xform_brain(flywire_neuron*8/1000, reference=ref, sample="FAFB14")
+  flywire.reg = nat.templatebrains::xform_brain(flywire_neuron, reference=ref, sample="FAFB14")
   
   #plot transformed neuron
   if(plot3D){
@@ -104,12 +104,24 @@ flywireid_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder 
   
   # make im3d
   x <- get(ref)
-  points = xyzmatrix(flywire.reg)
-  I = as.im3d(points,x)
+  points <- xyzmatrix(flywire.reg)
+  I <- nat::as.im3d(points,x)
+  if(compressed){
+    I <- nat::as.im3d(points, voxdims = c(0.519,0.52,1), BoundingBox = boundingbox(x))
+  }
   
   #save the flywire neuron as a .nrrd file
-  dir.create(savefolder)
+  dir.create(savefolder, showWarnings = FALSE)
   write.nrrd(I, file.path(savefolder, sprintf("%s_%s.nrrd",cell_type,ref)))
+  
+  if(max_projection){
+    # Maximal projection in X and Y dimensions
+    max_projection <- apply(I, c(1, 2), max)
+    write.nrrd(max_projection, file.path(savefolder, sprintf("max_projection_%s_%s.nrrd",cell_type,ref)))
+    
+  }
+  
+  
 }
 
 #file format: 20220408(1)_JRCU2018U(2)_FC1(3)_AD(4)_GDBD(5)_01(6).tif(7)
