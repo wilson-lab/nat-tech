@@ -87,7 +87,7 @@ hemibrain_to_nrrd <- function(cell_type, ref="JRC2018U", savefolder = "data", pl
 
 
 # write flywire neuron to nrrd, sample = "FAFB14", xyzmatrix
-flywireid_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder = "data", plot3D =TRUE, compressed = FALSE, max_projection = TRUE){
+flywireid_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder = "data", savemaxfolder = savefolder, plot3D =TRUE, compressed = FALSE, max_projection = TRUE){
   #read in flywire ID
   flywire_neuron <- fafbseg::read_cloudvolume_meshes(flywire_id)
   
@@ -118,7 +118,7 @@ flywireid_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder 
     # Maximal projection in X and Y dimensions
     max_projection <- apply(I, c(1, 2), max)
     #write.nrrd(max_projection, file.path(savefolder, sprintf("max_projection_%s_%s.nrrd",cell_type,ref)))
-    raster::writeRaster(raster::raster(t(max_projection)), filename = file.path(savefolder, sprintf("max_projection_%s_%s.tiff",cell_type,ref)), format = "GTiff", overwrite = TRUE)
+    raster::writeRaster(raster::raster(t(max_projection)), filename = file.path(savemaxfolder, sprintf("max_projection_%s_%s.tiff",cell_type,ref)), format = "GTiff", overwrite = TRUE)
   }
   
 }
@@ -426,8 +426,16 @@ download_hemibrain_obj <- function (segments, save.obj = getwd(), ratio = 1, ...
 combine_max_projection_tifs <- function(folder1, 
                                         folder2, 
                                         savefolder){
-  files1 <- list.files(folder1, full.names = TRUE, pattern = "^max|^MAX")
-  files2 <- list.files(folder2, full.names = TRUE, pattern = "^max|^MAX")
+  if(is.folder(folder1)){
+    files1 <- list.files(folder1, full.names = TRUE, pattern = "^max|^MAX")
+  }else{
+    files1 <- folder1
+  }
+  if(is.folder(folder1)){
+    files2 <- list.files(folder2, full.names = TRUE, pattern = "^max|^MAX")
+  }else{
+    files2 <- folder2
+  }
   for(file1 in files1){
     for(file2 in files2){
       data1 <- raster::raster(file1)
@@ -444,8 +452,6 @@ combine_max_projection_tifs <- function(folder1,
   }
   return(invisible())
 }
-
-
 
 
 

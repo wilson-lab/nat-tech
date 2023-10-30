@@ -8,7 +8,9 @@ library(elmr)
 library(neuronbridger)     
 library(lubridate)
 library(filesstrings)
-
+library(raster)
+# BiocManager::install("rhdf5")
+# nat.jrcbrains::download_saalfeldlab_registrations()
 register_saalfeldlab_registrations()
 
 #establish neuprint database
