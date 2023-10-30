@@ -63,7 +63,7 @@ Thumbs.db
 *.nrrd
 *.tif
 
-# neuron filrd
+# neuron files
 *.obj
 *.swc
 *.zip
