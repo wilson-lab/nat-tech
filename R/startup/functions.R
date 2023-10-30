@@ -117,10 +117,9 @@ flywireid_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder 
   if(max_projection){
     # Maximal projection in X and Y dimensions
     max_projection <- apply(I, c(1, 2), max)
-    write.nrrd(max_projection, file.path(savefolder, sprintf("max_projection_%s_%s.nrrd",cell_type,ref)))
-    
+    #write.nrrd(max_projection, file.path(savefolder, sprintf("max_projection_%s_%s.nrrd",cell_type,ref)))
+    raster::writeRaster(raster::raster(t(max_projection)), filename = file.path(savefolder, sprintf("max_projection_%s_%s.tiff",cell_type,ref)), format = "GTiff", overwrite = TRUE)
   }
-  
   
 }
 
@@ -423,3 +422,30 @@ download_hemibrain_obj <- function (segments, save.obj = getwd(), ratio = 1, ...
     }
   }
 }
+
+combine_max_projection_tifs <- function(folder1, 
+                                        folder2, 
+                                        savefolder){
+  files1 <- list.files(folder1, full.names = TRUE, pattern = "^max|^MAX")
+  files2 <- list.files(folder2, full.names = TRUE, pattern = "^max|^MAX")
+  for(file1 in files1){
+    for(file2 in files2){
+      data1 <- raster::raster(file1)
+      data2 <- raster::raster(file2)
+      raster::extent(data1) <- raster::extent(data2)
+      if (!raster::compareRaster(data1, data2)) {
+        stop("The two .tiff files must have the same dimensions.")
+      }
+      rgb_brick <- raster::brick(data2, data1, nl = 2)
+      # save
+      savefile <- file.path(savefolder,paste0("MERGED_",gsub("\\.tiff","",basename(file1)),"____",gsub("\\.tiff","",basename(file2)),".tiff"))
+      raster::writeRaster(rgb_brick, filename = savefile, format = "GTiff")
+    }
+  }
+  return(invisible())
+}
+
+
+
+
+

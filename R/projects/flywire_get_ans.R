@@ -12,12 +12,12 @@ an.df <- subset(dna02.proj, class=="AN")
 an.ids <- unlist(an.df$root_id)
 an.ids <- fafbseg::flywire_updateids(an.ids)
 
-# Create .nrrd file
+# Create .nrrd file and .tiff max projection files
 for(an.id in an.ids){
   flywireid_to_nrrd(flywire_id = an.id, 
                     cell_type = an.id, 
                     ref="JRC2018U", 
-                    savefolder = "/Users/wilsonlab/Desktop/test", 
+                    savefolder = "/Volumes/Neurobio/wilsonlab/Fernanda/Ascending Neurons/flywire/", 
                     plot3D = FALSE, 
                     compressed = TRUE,
                     max_projection = TRUE)
@@ -25,7 +25,7 @@ for(an.id in an.ids){
 
 # Convert my images into maximal projections in 32 bit
 contents <- list.files("/Volumes/wilsonlab/Fernanda/Ascending Neurons/red_channel/", full.names = TRUE)
-runMacro(macro = "R/macros/create_max_projection_serial.ijm", 
+runMacro(macro = "/Users/wilsonlab/Documents/GitHub/nat-tech/R/macros/create_max_projection_serial.ijm", 
          macroArg = contents[2], 
          headless = FALSE,
          batch = FALSE,
@@ -39,3 +39,7 @@ runMacro(macro = "R/macros/create_max_projection_serial.ijm",
          fijiPath = neuronbridger:::fiji(),
          DryRun = FALSE)
 
+# Combine our max projections in a single folder
+combine_max_projection_tifs(folder1="/Volumes/Neurobio/wilsonlab/Fernanda/Ascending Neurons/flywire/", 
+                            folder2="/Volumes/wilsonlab/Fernanda/Ascending Neurons/red_channel/", 
+                            savefolder="/Volumes/wilsonlab/Fernanda/Ascending Neurons/an_match_screen")

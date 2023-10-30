@@ -34,6 +34,7 @@ for (i = 0; i < file_list.length; i++) {
     //save as a .tif file with MAX_ and then original name
     saveAs("Tiff", parent_path + "/" + save_name);
     close();
+    close();
 	}else if ((i == file_list.length - 1) && to_composite == ""){
 		//will exit the macro if the for loop has iterated through all files and has not assigned the to_composite variable - meaning there is no .tif file
 		exit("no .tif files");
