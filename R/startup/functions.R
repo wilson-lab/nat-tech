@@ -87,7 +87,14 @@ hemibrain_to_nrrd <- function(cell_type, ref="JRC2018U", savefolder = "data", pl
 
 
 # write flywire neuron to nrrd, sample = "FAFB14", xyzmatrix
-flywireid_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder = "data", savemaxfolder = savefolder, plot3D =TRUE, compressed = FALSE, max_projection = TRUE){
+flywireid_to_nrrd <- function(flywire_id, 
+                              cell_type, 
+                              ref="JRC2018U", 
+                              savefolder = "data", 
+                              savemaxfolder = savefolder, 
+                              plot3D =TRUE, 
+                              compressed = FALSE, 
+                              max_projection = TRUE){
   #read in flywire ID
   flywire_neuron <- fafbseg::read_cloudvolume_meshes(flywire_id)
   
@@ -452,6 +459,19 @@ combine_max_projection_tifs <- function(folder1,
   }
   return(invisible())
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
