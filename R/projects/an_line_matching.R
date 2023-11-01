@@ -166,7 +166,7 @@ for (ln in top.lines){
 }
 
 #turn into colorMIP file
-neuronbridger::nrrd_to_mip()
+neuronbridger::nrrd_to_mip(macro=NULL)
 
 
 #get transparent brain and plot neuron of interest
