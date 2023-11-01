@@ -426,28 +426,34 @@ download_hemibrain_obj <- function (segments, save.obj = getwd(), ratio = 1, ...
 combine_max_projection_tifs <- function(folder1, 
                                         folder2, 
                                         savefolder){
-  if(is.folder(folder1)){
+  if(dir.exists(folder1)){
     files1 <- list.files(folder1, full.names = TRUE, pattern = "^max|^MAX")
   }else{
     files1 <- folder1
   }
-  if(is.folder(folder1)){
+  if(dir.exists(folder1)){
     files2 <- list.files(folder2, full.names = TRUE, pattern = "^max|^MAX")
   }else{
     files2 <- folder2
   }
   for(file1 in files1){
     for(file2 in files2){
+      message("file 1: ", file1)
+      message("file 2: ", file2)
       data1 <- raster::raster(file1)
       data2 <- raster::raster(file2)
       raster::extent(data1) <- raster::extent(data2)
       if (!raster::compareRaster(data1, data2)) {
         stop("The two .tiff files must have the same dimensions.")
       }
-      rgb_brick <- raster::brick(data2, data1, nl = 2)
+      combined <- raster::brick(data2, data1, nl = 2)
+      # data1 <- tiff::readTIFF(file1, native = FALSE)
+      # data2 <- tiff::readTIFF(file2, native = FALSE)
+      # combined <- array(c(data1/max(data1), data2/max(data2)), dim = c(dim(data1),2))
+      message("combined")
       # save
-      savefile <- file.path(savefolder,paste0("MERGED_",gsub("\\.tiff","",basename(file1)),"____",gsub("\\.tiff","",basename(file2)),".tiff"))
-      raster::writeRaster(rgb_brick, filename = savefile, format = "GTiff")
+      savefile <- file.path(savefolder,paste0("MERGED_",gsub("\\.tiff|\\.tif","",basename(file1)),"____",gsub("\\.tiff|\\.tif","",basename(file2)),".tiff"))
+      raster::writeRaster(combined, filename = savefile, format = "GTiff")
     }
   }
   return(invisible())
