@@ -3,9 +3,9 @@ source("R/startup/packages.R")
 source("R/startup/functions.R")
 
 #paths we will need
-imagepath = "/Users/sophiarenauld/Documents/janelia_acending_neuron_stacks/brain"
+imagepath = "/Users/sophiarenauld/Documents/janelia_acending_neuron_stacks/lines_brain"
 lineimages = "/Users/sophiarenauld/Documents/janelia_acending_neuron_stacks/rgl_plots"
-flywirepath ="/Users/sophiarenauld/Documents/janelia_acending_neuron_stacks/brain_flywire"
+flywirepath ="/Users/sophiarenauld/Documents/janelia_acending_neuron_stacks/flywire_brain"
 processed_ans = "/Users/sophiarenauld/Documents/janelia_acending_neuron_stacks/processed_ans"
 matching_folder = "/Users/sophiarenauld/Documents/janelia_acending_neuron_stacks/matched_ans"
 
@@ -30,11 +30,12 @@ for (id in ft.an$root_id) {
 savefile = file.path(processed_ans, "ans_dps.rda")
 save(ans.dps, file = savefile)
 
+#step 2 - get dot masks of light level data
 #get image data
 lm.images = list.files(imagepath, full = TRUE, pattern = "\\.h5j")
 #regex - match strings, have to remove contexts of characters (\\)
 #no longer need contents <- list.files(lineimages, full.names = TRUE)
-for (pic in lm.images) {
+for (pic in lm.images[1:25]) {
   runMacro(macro = "/Users/sophiarenauld/Documents/GitHub/nat-tech/R/macros/create_tiff_files.ijm", 
            macroArg = pic,
            headless = FALSE,
@@ -50,8 +51,24 @@ for (pic in lm.images) {
            DryRun = FALSE)
 }
 
+#create new max projections of light data
+contents <- list.files(imagepath, full.names = TRUE)
+runMacro(macro = "/Users/sophiarenauld/Documents/GitHub/nat-tech/R/macros/create_max_projection_serial.ijm", 
+         macroArg = contents[2], 
+         headless = FALSE,
+         batch = FALSE,
+         MinMem = "100m",
+         MaxMem = "25000m",
+         IncrementalGC = TRUE,
+         Threads = NULL,
+         fijiArgs = NULL,
+         javaArgs = NULL, 
+         ijArgs = NULL,
+         fijiPath = neuronbridger:::fiji(),
+         DryRun = FALSE)
+
 lm.ans.dps = nat::neuronlist()
-#need to make this  macro stop after it is done
+
 nrrd.images = unique(list.files(imagepath, full = TRUE, pattern = "\\.nrrd"))
 for (file in nrrd.images) {
   message("working on ", file)
@@ -120,38 +137,40 @@ for (an.id in top.ids){
                     max_projection = TRUE)
 }
 
+#done up until here !!!
 #step 4 - save subset of nblast light level images
-for (ln in nb.hits.df$line_name){
-  dir.create(ln, showWarnings = FALSE)
-  dir.create(file.path(ln,"max_projection"),  showWarnings = FALSE)
-  dir.create(file.path(ln,"image_stack"),  showWarnings = FALSE)
+top.lines = subset(nb.hits.df, nblast_score > 0.1)$line_name
+for (ln in top.lines){
+  line.folder=file.path(matching_folder, ln)
+  dir.create(line.folder, showWarnings = FALSE)
+  dir.create(file.path(line.folder,"max_projection"),  showWarnings = FALSE)
+  dir.create(file.path(line.folder,"image_stack"),  showWarnings = FALSE)
   # thing 1 move the em max projections and stacks into folder
-  top.ids = subset(nb.hits.df, nblast_score > 0.1 & line_name == ln)$root_id
-  found.files = list.files(file.path(flywirepath,"max_projection"), full = TRUE, pattern = paste(top.ids, collapse = "|"))
-  found.files.3d = list.files(file.path(flywirepath,"image_stack"), full = TRUE, pattern = paste(top.ids, collapse = "|"))
+  top.ids.lines = subset(nb.hits.df, nblast_score > 0.1 & line_name == ln)$flywire
+  found.files = list.files(file.path(flywirepath,"max_projection"), full = TRUE, pattern = paste(top.ids.lines, collapse = "|"))
+  found.files.3d = list.files(file.path(flywirepath,"image_stack"), full = TRUE, pattern = paste(top.ids.lines, collapse = "|"))
   # thing 2 make max projections of light data
-  
+  ln.max = list.files(imagepath, full = TRUE, pattern = paste0("^MAX.*", ln, ".*\\.tif"))
+  ln.3d = list.files(imagepath, full = TRUE, pattern = paste0(ln, ".*\\.nrrd"))
+  scores = subset(nb.hits.df, nblast_score > 0.1 & line_name == ln)$nblast_score
+  scores = round(scores*100, 0)
   # thing 3 combine max projections of em & light data
   combine_max_projection_tifs(found.files,
                               ln.max,
-                              savefolder = file.path(flywirepath,"max_projection"))
-  combine_max_tifs(found.files.3d,
-                              ln.3d,
-                              savefolder = file.path(flywirepath,"image_stack"))
+                              savefolder = file.path(line.folder,"max_projection"),
+                              scores = scores)
+  combine_nrrds(found.files.3d,
+                ln.3d,
+                savefolder = file.path(line.folder,"image_stack"),
+                scores = scores)
 }
 
-
+#turn into colorMIP file
+neuronbridger::nrrd_to_mip()
 
 
 #get transparent brain and plot neuron of interest
 #plot3d(elmr::FAFB.surf, alpha = 0.1, col = "gray")
-#plot3d(elmr::JRC2018U) for switching brain space
+#plot3d(JRC2018U) for switching brain space
 #> plot3d(mesh)
 #> 
-#> 
-# resave neurons as tiffs
-
-name = "/Users/sophiarenauld/Documents/janelia_acending_neuron_stacks/brain/SS46233-20180202_43_E5-m-20x-brain-Split_GAL4-JRC2018_Unisex_20x_HR-aligned_stack.h5j"
-runMacro(macro = "/Users/sophiarenauld/Documents/GitHub/nat-tech/R/macros/create_tiff_files.ijm", 
-         macroArg = name, 
-         )
