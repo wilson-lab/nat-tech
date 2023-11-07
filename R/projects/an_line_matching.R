@@ -2,12 +2,14 @@
 source("R/startup/packages.R")
 source("R/startup/functions.R")
 
+
 #paths we will need
 imagepath = "/Users/sophiarenauld/Documents/janelia_acending_neuron_stacks/lines_brain"
-lineimages = "/Users/sophiarenauld/Documents/janelia_acending_neuron_stacks/rgl_plots"
-flywirepath ="/Users/sophiarenauld/Documents/janelia_acending_neuron_stacks/flywire_brain"
+#h5j_path = "/Users/sophiarenauld/Documents/janelia_acending_neuron_stacks/h5j_lm_images"
+lineimages = "/Users/sophiarenauld/Documents/janelia_acending_neuron_stacks/rgl_plots_lm_ans"
+flywirepath ="/Users/sophiarenauld/Documents/janelia_acending_neuron_stacks/flywire_brain_stacks_and_max"
 processed_ans = "/Users/sophiarenauld/Documents/janelia_acending_neuron_stacks/processed_ans"
-matching_folder = "/Users/sophiarenauld/Documents/janelia_acending_neuron_stacks/matched_ans"
+matching_folder = "/Volumes/Neurobio/wilsonlab/ascending_neurons/smr_search/merged_images"
 
 #read in AN data & turn into nblast objects
 # Get meta data, if this does not work for you obtain data here: https://github.com/flyconnectome/flywire_annotations
@@ -35,7 +37,7 @@ save(ans.dps, file = savefile)
 lm.images = list.files(imagepath, full = TRUE, pattern = "\\.h5j")
 #regex - match strings, have to remove contexts of characters (\\)
 #no longer need contents <- list.files(lineimages, full.names = TRUE)
-for (pic in lm.images[1:25]) {
+for (pic in lm.images) {
   runMacro(macro = "/Users/sophiarenauld/Documents/GitHub/nat-tech/R/macros/create_tiff_files.ijm", 
            macroArg = pic,
            headless = FALSE,
@@ -110,6 +112,7 @@ load(file.path(processed_ans, "ans_dps.rda"))
 
 #run nblast
 nb = nat.nblast::nblast(lm.ans.dps, ans.dps, normalised = TRUE)
+
 colnames(nb) <- paste0("id",as.character(colnames(nb)))
 rownames(nb) <- paste0("id",as.character(rownames(nb)))
 nb.df <- reshape2::melt(nb, varnames = c("Row", "Column"), value.name = "nblast_score")
@@ -124,8 +127,14 @@ nb.hits.df <- nb.df %>%
   as.data.frame()
 readr::write_csv(nb.hits.df, file = file.path(processed_ans, "ans_nblast_results.csv"))
 
+
+nb.hits.df = readr::read_csv(file=file.path(processed_ans, "ans_nblast_results.csv"), col_types=list(flywire="c",
+                                                                                                     line_name ="c",
+                                                                                                     nblast_score = "n",
+                                                                                                     proceed = "l"))
+
 #save just the an em images with a hit
-top.ids = subset(nb.hits.df, nblast_score > 0.1)$flywire
+top.ids = unique(subset(nb.hits.df, nblast_score > 0.1)$flywire)
 for (an.id in top.ids){
   flywireid_to_nrrd(flywire_id = an.id, 
                     cell_type = an.id, 
@@ -137,10 +146,10 @@ for (an.id in top.ids){
                     max_projection = TRUE)
 }
 
-#done up until here !!!
-#step 4 - save subset of nblast light level images
-top.lines = subset(nb.hits.df, nblast_score > 0.1)$line_name
-for (ln in top.lines){
+
+#step 4 - save subset of nblast light level images (one line has 2 images)
+top.lines = unique(subset(nb.hits.df, nblast_score > 0.1)$line_name)
+for (ln in top.lines[1]){
   line.folder=file.path(matching_folder, ln)
   dir.create(line.folder, showWarnings = FALSE)
   dir.create(file.path(line.folder,"max_projection"),  showWarnings = FALSE)
