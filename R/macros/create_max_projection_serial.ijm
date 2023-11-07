@@ -18,7 +18,7 @@ to_composite = "";
 //goes through the file list and sees what file ends with .tif and opens that file
 for (i = 0; i < file_list.length; i++) {
 	//checks if given file has .tif extension or jpg or png
-	tif_exists = matches(file_list[i], ".*\\.(jpg|png|tif)$");
+	tif_exists = matches(file_list[i], ".*\\.(jpg|png|tif|nrrd)$");
 	if(tif_exists == 1){
 		//create the full path that will point to correct .tif file
 		full_path = parent_path + "/" + file_list[i];
@@ -40,3 +40,4 @@ for (i = 0; i < file_list.length; i++) {
 		exit("no .tif files");
 	}
 }
+run("Quit");

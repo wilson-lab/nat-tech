@@ -87,14 +87,7 @@ hemibrain_to_nrrd <- function(cell_type, ref="JRC2018U", savefolder = "data", pl
 
 
 # write flywire neuron to nrrd, sample = "FAFB14", xyzmatrix
-flywireid_to_nrrd <- function(flywire_id, 
-                              cell_type, 
-                              ref="JRC2018U", 
-                              savefolder = "data", 
-                              savemaxfolder = savefolder, 
-                              plot3D =TRUE, 
-                              compressed = FALSE, 
-                              max_projection = TRUE){
+flywireid_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder = "data", savemaxfolder = savefolder, plot3D =TRUE, compressed = FALSE, max_projection = TRUE){
   #read in flywire ID
   flywire_neuron <- fafbseg::read_cloudvolume_meshes(flywire_id)
   
@@ -432,7 +425,8 @@ download_hemibrain_obj <- function (segments, save.obj = getwd(), ratio = 1, ...
 
 combine_max_projection_tifs <- function(folder1, 
                                         folder2, 
-                                        savefolder){
+                                        savefolder,
+                                        scores=NULL){
   if(dir.exists(folder1)){
     files1 <- list.files(folder1, full.names = TRUE, pattern = "^max|^MAX")
   }else{
@@ -443,7 +437,13 @@ combine_max_projection_tifs <- function(folder1,
   }else{
     files2 <- folder2
   }
-  for(file1 in files1){
+  for(i in 1:length(files1)){
+      file1 = files1[i]
+      if (is.null(scores)) {
+        score=""
+      } else {
+        score=scores[i]      
+      }
     for(file2 in files2){
       message("file 1: ", file1)
       message("file 2: ", file2)
@@ -453,13 +453,13 @@ combine_max_projection_tifs <- function(folder1,
       if (!raster::compareRaster(data1, data2)) {
         stop("The two .tiff files must have the same dimensions.")
       }
-      combined <- raster::brick(data2, data1, nl = 2)
+      combined <- raster::brick(data1, data2, nl = 2)
       # data1 <- tiff::readTIFF(file1, native = FALSE)
       # data2 <- tiff::readTIFF(file2, native = FALSE)
       # combined <- array(c(data1/max(data1), data2/max(data2)), dim = c(dim(data1),2))
       message("combined")
       # save
-      savefile <- file.path(savefolder,paste0("MERGED_",gsub("\\.tiff|\\.tif","",basename(file1)),"____",gsub("\\.tiff|\\.tif","",basename(file2)),".tiff"))
+      savefile <- file.path(savefolder,paste0("MERGED_",score,gsub("\\.tiff|\\.tif","",basename(file1)),"____",gsub("\\.tiff|\\.tif","",basename(file2)),".tiff"))
       raster::writeRaster(combined, filename = savefile, format = "GTiff")
     }
   }
@@ -467,17 +467,46 @@ combine_max_projection_tifs <- function(folder1,
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+combine_nrrds <- function(folder1, 
+                          folder2, 
+                          savefolder,
+                          scores=NULL){
+  if(dir.exists(folder1)){
+    files1 <- list.files(folder1, full.names = TRUE, pattern = "^max|^MAX")
+  }else{
+    files1 <- folder1
+  }
+  if(dir.exists(folder1)){
+    files2 <- list.files(folder2, full.names = TRUE, pattern = "^max|^MAX")
+  }else{
+    files2 <- folder2
+  }
+  
+  for(i in 1:length(files1)){
+    file1 = files1[i]
+    if (is.null(scores)) {
+      score=""
+    } else {
+      score=scores[i]      
+    }
+    for(file2 in files2){
+      message("file 1: ", file1)
+      message("file 2: ", file2)
+      runMacro(macro = "/Users/sophiarenauld/Documents/GitHub/nat-tech/R/macros/combine_nrrds.ijm", 
+               macroArg = paste(c(file1, file2, savefolder,score), collapse ="|"), 
+               headless = FALSE,
+               batch = FALSE,
+               MinMem = "100m",
+               MaxMem = "25000m",
+               IncrementalGC = TRUE,
+               Threads = NULL,
+               fijiArgs = NULL,
+               javaArgs = NULL, 
+               ijArgs = NULL,
+               fijiPath = neuronbridger:::fiji(),
+               DryRun = FALSE)
+  
+    }
+  }
+  return(invisible())
+}
