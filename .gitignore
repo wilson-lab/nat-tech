@@ -67,3 +67,5 @@ Thumbs.db
 *.obj
 *.swc
 *.zip
+data/park_et_al_2022/GSE207799_Thirst2_celltypes.Robj
+data/park_et_al_2022/GSE207799_Thirst2_SCT_trimPlus.Robj

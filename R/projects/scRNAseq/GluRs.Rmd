@@ -1,0 +1,230 @@
+---
+title: "glurs"
+author: "Alexander Bates"
+date: "2023-11-03"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+``` {r load}
+library(ggplot2)
+library(Matrix)
+library(cowplot)
+library(Seurat)
+library(tidyverse)
+library(plyr)
+library(SingleCellExperiment)
+library(matrixStats)
+library(umap)
+library(foreach)
+library(DoubletFinder)
+
+# Load the data we need
+load("~/projects/wilson-lab/nat-tech/data/park_et_al_2022/GSE207799_Thirst2_SCT_trimPlus.Robj")
+Thirst2_SCT_trimPlus <- UpdateSeuratObject(object = Thirst2_SCT_trimPlus)
+DefaultAssay(Thirst2_SCT_trimPlus) <- "SCT"
+load("~/projects/wilson-lab/nat-tech/data/park_et_al_2022/GSE207799_Thirst2_celltypes.Robj")
+#Thirst2_celltypes <- UpdateSeuratObject(object = Thirst2_celltypes)
+#DefaultAssay(Thirst2_celltypes) <- "SCT"
+
+# knit options
+#dir.create('images/GluR_scRNA', recursive = TRUE, showWarnings = FALSE)
+knitr::opts_chunk$set(echo = FALSE,
+                      include = TRUE,
+                      message = FALSE,
+                      warning = FALSE,
+                      fig.path='~/projects/wilson-lab/nat-tech/images/GluR_scRNA',
+                      dev = c('pdf', 'png'),
+                      fig_caption = TRUE,
+                      fig.align = 'center',
+                      fig.height = 6,
+                      fig.width = 8,
+                      pdf.options(encoding = "ISOLatin9.enc"),
+                      rgl=TRUE)
+```
+
+```{r define}
+genes <- rownames(Thirst2_SCT_trimPlus)
+# Glutamate receptor associates: https://string-db.org/network/7227.FBpp0076691
+# GluRs:
+glur.correlates <- c(
+  "stg1", "PICK1","CASK","Neto" # GluR correlates
+)
+glurs <- c("GluRIIC", "GluRIID", "GluRIIE", # Muscle specific 
+          "GluRIIA", "GluRIIB", # Muscle specific 
+          "GluRIA", "GluRIB", # AMPAR brain
+          "clumsy", "CG11155", # Kainate
+          "DKaiR1D", # DKaiR1D, Kainate
+          #"DKaiR1C", # DKaiR1C, Kainate  Muscle specific 
+          "Nmdar1", "Nmdar2", # NMDA
+          "GluClalpha", # GluCLalpha
+          "mGluR" # metabotropic 
+          )
+glur.inhib <- c("GluClalpha")
+glur.excit <- c(
+   "GluRIA", "GluRIB", # AMPAR brain
+   "clumsy", "CG11155", # Kainate
+   "Nmdar1", "Nmdar2" # NMDA)
+)
+markers <- glurs
+```
+
+```{r glur_as_markers_table}
+glur.markers <- FindAllMarkers(Thirst2_SCT_trimPlus, features = c(glur.inhib,glur.excit), logfc.threshold = 0)
+glur.markers <- glur.markers %>% arrange(dplyr::desc(abs(avg_log2FC)))
+knitr::kable(glur.markers)
+```
+
+```{r celltype_umap, fig.height = 8, fig.width = 8}
+Idents(Thirst2_SCT_trimPlus) <- Thirst2_SCT_trimPlus$celltype
+DimPlot(Thirst2_SCT_trimPlus)
+```
+
+```{r celltype_glur_average_expression, fig.height = 6, fig.width = 8}
+markers_avex <- Seurat::AverageExpression(Thirst2_SCT_trimPlus, assays="RNA", features=markers)$RNA %>% as.data.frame() %>% rownames_to_column("Gene") %>% dplyr::mutate(Gene = as.character(Gene)) %>% gather(Clusters, Avex, -Gene)
+thresholds <- data.frame(Gene=factor(markers, levels=markers), thresh=rep(1,length(markers)))
+markers_avex %>% dplyr::arrange(Gene, Avex) %>% tidyr::unite("gene_clusters", Gene, Clusters, sep = "_", remove = FALSE) %>% dplyr::mutate(gene_clusters=factor(gene_clusters, levels=gene_clusters), Gene=factor(Gene, levels=markers)) %>% ggplot(aes(x=gene_clusters,y=Avex)) + geom_point(size=.2) + facet_wrap(~Gene, scales="free", nrow = 3) + theme(strip.text=element_text(face="italic")) + labs(x="Clusters", y="Average expression") + coord_cartesian(clip = "off") + geom_hline(data=thresholds, aes(yintercept=thresh), color="darkred") + theme(axis.ticks.x=element_blank(), axis.text.x=element_text(size = 5, angle = 45, hjust = 1))
+```
+
+```{r celltype_glur_dotplot_rna, fig.height = 6, fig.width = 12}
+DotPlot(Thirst2_SCT_trimPlus, assay="RNA", features = glurs) + ggtitle("GluRs") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=1))
+```
+
+```{r celltype_glur_dotplot_sct, fig.height = 6, fig.width = 12}
+DotPlot(Thirst2_SCT_trimPlus, assay="SCT", features = glurs) + ggtitle("GluRs") + theme(plot.title=element_text(hjust=.5),                                                                        panel.border=element_rect(colour="black", size=1),
+   axis.text.y=element_text(size = 10, angle = 45))
+```
+
+```{r celltype_ann_umap, fig.height = 12, fig.width = 12}
+for(c in Thirst2_celltypes){if(c@project.name=="ACh"){ACh_object <- c; Idents(ACh_object) <- ACh_object$celltype_ann}}
+for(c in Thirst2_celltypes){if(c@project.name=="Glut"){Glut_object <- c; Idents(Glut_object) <- Glut_object$celltype_ann}}
+for(c in Thirst2_celltypes){if(c@project.name=="GABA"){GABA_object <- c; Idents(GABA_object) <- GABA_object$celltype_ann}}
+for(c in Thirst2_celltypes){if(c@project.name=="Monoamines"){Monoamines_object <- c; Idents(Monoamines_object) <- Monoamines_object$celltype_ann}}
+for(c in Thirst2_celltypes){if(c@project.name=="KCs"){KCs_object <- c; Idents(KCs_object) <- KCs_object$celltype_ann}}
+for(c in Thirst2_celltypes){if(c@project.name=="Other"){Other_object <- c; Idents(Other_object) <- Other_object$celltype_ann}}
+for(c in Thirst2_celltypes){if(c@project.name=="Glia"){Glia_object <- c; Idents(Glia_object) <- Glia_object$celltype_ann}}
+Idents(Thirst2_SCT_trimPlus) <- Thirst2_SCT_trimPlus$celltype_ann
+DimPlot(Thirst2_SCT_trimPlus) + 
+  NoAxes() + 
+  theme(legend.title = element_text(size = 5), 
+        legend.text = element_text(size = 5),
+        legend.key.size = unit(c(0.1), "lines")) +
+  guides(color = guide_legend(override.aes = list(size = 5), ncol = 4)) +
+  ggtitle("celltype_ann_umap") + 
+  theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+```
+
+```{r celltype_ann_glur_average_expression, fig.height = 6, fig.width = 8}
+markers_avex <- Seurat::AverageExpression(Thirst2_SCT_trimPlus, assays="RNA", features=markers)$RNA %>% as.data.frame() %>% rownames_to_column("Gene") %>% dplyr::mutate(Gene = as.character(Gene)) %>% gather(Clusters, Avex, -Gene)
+thresholds <- data.frame(Gene=factor(markers, levels=markers), thresh=rep(1,length(markers)))
+markers_avex %>% dplyr::arrange(Gene, Avex) %>% tidyr::unite("gene_clusters", Gene, Clusters, sep = "_", remove = FALSE) %>% dplyr::mutate(gene_clusters=factor(gene_clusters, levels=gene_clusters), Gene=factor(Gene, levels=markers)) %>% ggplot(aes(x=gene_clusters,y=Avex)) + geom_point(size=.2) + facet_wrap(~Gene, scales="free", nrow=3) + theme(strip.text=element_text(face="italic"), axis.ticks.x=element_blank(), axis.text.x = element_blank()) + labs(x="Clusters", y="Average expression") + coord_cartesian(clip = "off") + geom_hline(data=thresholds, aes(yintercept=thresh), color="darkred")
+```
+
+```{r celltype_ann_glur_umap, fig.height = 12, fig.width = 12}
+FeaturePlot(Thirst2_SCT_trimPlus, glurs, order=T)
+```
+
+```{r celltype_ann_glur_dotplot_rna, fig.height = 10, fig.width = 10}
+ACh.dp <- DotPlot(ACh_object, assay="RNA", features = glurs) + 
+  ggtitle("ACh") + 
+  theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=1), axis.text.y = element_text(color = "black", size = 5, angle = 45),  axis.text.x = element_text(color = "black", size = 5))
+Glut.dp <- DotPlot(Glut_object, assay="RNA", features = glurs) + 
+  ggtitle("Glut") + 
+  theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=1), axis.text.y = element_text(color = "black", size = 5, angle = 45),  axis.text.x = element_text(color = "black", size = 5))
+GABA.dp <- DotPlot(GABA_object, assay="RNA", features = glurs) + 
+  ggtitle("GABA") + 
+  theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=1), axis.text.y = element_text(color = "black", size = 5, angle = 45),  axis.text.x = element_text(color = "black", size = 5))
+Monoamines.dp <- DotPlot(Monoamines_object, assay="RNA", features = glurs) + 
+  ggtitle("Monoamines") + 
+  theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=1), axis.text.y = element_text(color = "black", size = 5, angle = 45),  axis.text.x = element_text(color = "black", size = 5))
+KCs.dp <- DotPlot(KCs_object, assay="RNA", features = glurs) + 
+  ggtitle("KCS") + 
+  theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=1), axis.text.y = element_text(color = "black", size = 5, angle = 45),  axis.text.x = element_text(color = "black", size = 5))
+Other.dp <- DotPlot(Other_object, assay="RNA", features = glurs) + 
+  ggtitle("Other") + 
+  theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=1), axis.text.y = element_text(color = "black", size = 5, angle = 45),  axis.text.x = element_text(color = "black", size = 5))
+Glia.dp <- DotPlot(Glia_object, assay="RNA", features = glurs) + 
+  ggtitle("Glia") + 
+  theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=1), axis.text.y = element_text(color = "black", size = 5, angle = 45),  axis.text.x = element_text(color = "black", size = 5))
+ACh.dp
+Glut.dp
+GABA.dp
+Monoamines.dp
+KCs.dp
+Other.dp
+Glia.dp
+```
+
+```{r celltype_ann_glur_dotplot_sct,fig.height = 6, fig.width = 8}
+ACh.dp <- DotPlot(ACh_object, assay="SCT", features = glurs) + 
+  ggtitle("ACh") + 
+  theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=1), axis.text.y = element_text(color = "black", size = 5, angle = 45),  axis.text.x = element_text(color = "black", size = 5))
+Glut.dp <- DotPlot(Glut_object, assay="SCT", features = glurs) + 
+  ggtitle("Glut") + 
+  theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=1), axis.text.y = element_text(color = "black", size = 5, angle = 45),  axis.text.x = element_text(color = "black", size = 5))
+GABA.dp <- DotPlot(GABA_object, assay="SCT", features = glurs) + 
+  ggtitle("GABA") + 
+  theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=1), axis.text.y = element_text(color = "black", size = 5, angle = 45),  axis.text.x = element_text(color = "black", size = 5))
+Monoamines.dp <- DotPlot(Monoamines_object, assay="SCT", features = glurs) + 
+  ggtitle("Monoamines") + 
+  theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=1), axis.text.y = element_text(color = "black", size = 5, angle = 45),  axis.text.x = element_text(color = "black", size = 5))
+KCs.dp <- DotPlot(KCs_object, assay="SCT", features = glurs) + 
+  ggtitle("KCS") + 
+  theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=1), axis.text.y = element_text(color = "black", size = 5, angle = 45),  axis.text.x = element_text(color = "black", size = 5))
+Other.dp <- DotPlot(Other_object, assay="SCT", features = glurs) + 
+  ggtitle("Other") + 
+  theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=1), axis.text.y = element_text(color = "black", size = 5, angle = 45),  axis.text.x = element_text(color = "black", size = 5))
+Glia.dp <- DotPlot(Glia_object, assay="SCT", features = glurs) + 
+  ggtitle("Glia") + 
+  theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=1), axis.text.y = element_text(color = "black", size = 5, angle = 45),  axis.text.x = element_text(color = "black", size = 5))
+ACh.dp
+Glut.dp
+GABA.dp
+Monoamines.dp
+KCs.dp
+Other.dp
+Glia.dp
+```
+
+``` {r glur_feature_plots, fig.height = 10, fig.width = 12}
+message(DefaultAssay(ACh_object))
+ACh.umap <- FeaturePlot(ACh_object, glurs, order=T) + NoAxes() + NoLegend() + ggtitle("ACh") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+ACh.umap
+Glut.umap <- FeaturePlot(Glut_object, glurs, order=T) + NoAxes() + NoLegend() + ggtitle("Glut") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+Glut.umap
+GABA.umap <- FeaturePlot(GABA_object, glurs, order=T) + NoAxes() + NoLegend() + ggtitle("GABA") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+GABA.umap
+Monoamines.umap <- FeaturePlot(Monoamines_object, glurs, order=T) + NoAxes() + NoLegend() + ggtitle("Monoamines") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+Monoamines.umap
+KCs.umap <- FeaturePlot(KCs_object, glurs, order=T) + NoAxes() + NoLegend() + ggtitle("KCs") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+KCs.umap
+Other.umap <- FeaturePlot(Other_object, glurs, order=T) + NoAxes() + NoLegend() + ggtitle("Other") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+Other.umap
+Glia.umap <- FeaturePlot(Glia_object, glurs, order=T) + NoAxes() + NoLegend() + ggtitle("Glia") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+Glia.umap
+```
+
+How many neurons express more excitatory GluRs than inhibitory?
+
+```{r glur_relative_count}
+# Quantify cell countsover given thresholds
+cells <- WhichCells(Thirst2_SCT_trimPlus, expression = Nmdar1>1)
+```
+
+# Speculative Central Complex
+
+Paper: https://link.springer.com/article/10.1007/s00427-016-0542-7
+Several transcription factors remain detectable in a certain lineage from the delaminating neuroblast to at least a subset of daughter cells of that neuroblast 
+like engrailed (Kumar et al. 2009), and Ct, Dan, Dll, and Optix in type II neuroblasts (Bayraktar and Doe 2013).
+
+```{r cx_markers_ump, fig.height = 12, fig.width = 14}
+# lin-28, cas
+cx.markers <- c("Imp", "Syp", "pnt",
+                "chinmo", "svp", 
+                "br", "Eip93F",
+                "Rx", "ct", "dan", "Dll", "Optix")
+CX.umap <- FeaturePlot(Thirst2_SCT_trimPlus, cx.markers, order=T) 
+CX.umap
+```
