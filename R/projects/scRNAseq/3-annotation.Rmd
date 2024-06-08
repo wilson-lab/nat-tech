@@ -1,0 +1,281 @@
+Annotation is done independently for each major cell group, using known
+markers from the literature.
+
+#### 1. Load packages and data
+
+``` {r}
+library(ggplot2)
+library(Matrix)
+library(cowplot)
+library(Seurat)
+library(tidyverse)
+library(plyr)
+library(SingleCellExperiment)
+library(matrixStats)
+library(umap)
+library(foreach)
+library(DoubletFinder)
+load("/Users/abates/projects/wilson-lab/nat-tech/data/park_et_al_2022/GSE207799_Thirst2_celltypes.Robj")
+load("/Users/abates/projects/wilson-lab/nat-tech/data/park_et_al_2022/GSE207799_Thirst2_SCT_trimPlus.Robj")
+Thirst2_SCT_trimPlus <- UpdateSeuratObject(object = Thirst2_SCT_trimPlus)
+Thirst2_celltypes <- UpdateSeuratObject(object = Thirst2_celltypes)
+```
+
+#### 2. Cholinergic neurons
+
+*acj6*, *ct* and *Lim1* are specifically expressed in cholinergic
+olfactory projection neurons.
+
+``` {r}
+ACh_markers <- c("ct", "acj6", "Lim1")
+ACh_thresholds <- data.frame(Gene=ACh_markers, thresh=c(7,5,7))
+for(c in Thirst2_celltypes){if(c@project.name=="ACh"){ACh_object <- c; Idents(ACh_object) <- ACh_object$merged_clusters}}
+ACh_markers_table <- as.data.frame(ACh_object@assays$RNA@data[ACh_markers,]) %>% rownames_to_column("Gene") %>% gather(Cells, Values, -Gene) %>% mutate(Gene=factor(Gene, levels=unique(Gene)))
+ACh_markers_avex <- AverageExpression(ACh_object, assays="RNA", features=ACh_markers)$RNA %>% as.data.frame() %>% rownames_to_column("Gene") %>% gather(Clusters, Avex, -Gene)
+ACh_markers_avex %>% arrange(Gene, Avex) %>% unite("gene_clusters", Gene, Clusters, sep = "_", remove = FALSE) %>% mutate(gene_clusters=factor(gene_clusters, levels=gene_clusters), Gene=factor(Gene, levels=ACh_markers)) %>% ggplot(aes(x=gene_clusters,y=Avex)) + geom_point(size=.2) + facet_wrap(~Gene, scales="free") + theme(strip.text=element_text(face="italic"), axis.ticks.x=element_blank(), axis.text.x = element_blank()) + labs(x="Clusters", y="Average expression") + coord_cartesian(clip = "off") + geom_hline(data=ACh_thresholds, aes(yintercept=thresh), color="darkred")
+```
+
+Clusters with these 3 genes expressed above threshold are annotated as
+olfactory PNs.
+
+``` {r}
+Idents(ACh_object) <- ACh_object$merged_clusters
+ACh_object$ann_clusters_sub <- as.character(Idents(ACh_object))
+for(i in unique(ACh_object$ann_clusters_sub)){
+  if(min(ACh_markers_avex[ACh_markers_avex$Clusters==i,]$Avex>ACh_thresholds$thresh)==1){
+    ACh_object$ann_clusters_sub[ACh_object$ann_clusters_sub==i] <- paste0(i, "_OlfactoryPNs")
+  } else{
+    ACh_object$ann_clusters_sub[ACh_object$ann_clusters_sub==i] <- paste0(i, "_ACh")
+  }
+}
+Idents(ACh_object) <- ACh_object$ann_clusters_sub
+```
+
+#### 3. Glutamatergic neurons
+
+``` {r}
+for(c in Thirst2_celltypes){if(c@project.name=="Glut"){Glut_object <- c; Idents(Glut_object) <- Glut_object$merged_clusters}}
+Idents(Glut_object) <- Glut_object$merged_clusters
+Glut_object$ann_clusters_sub <- paste0(Idents(Glut_object), "_Glut")
+Idents(Glut_object) <- Glut_object$ann_clusters_sub
+```
+
+#### 4. GABAergic neurons
+
+Markers used:  
+Large-field Ellipsoid Body Ring neurons: *cv-c*, *Dh31*, *Octbeta2R*,
+*5-HT7*  
+Small-field Ellipsoid Body Ring neurons: *cv-c*, *Dh31*, *Octbeta2R*,
+NOT *5-HT7*  
+Ventral and dorsal fan-shaped body: *cv-c*, *Dh31*, *sNPF*, NOT *Octbeta2R*  
+Medial fan-shaped body: *cv-c*, *Dh31*, NOT *sNPF*, NOT *Octbeta2R*
+
+``` {r}
+GABA_markers <- c("cv-c", "Dh31", "sNPF", "Octbeta2R", "5-HT7")
+GABA_thresholds <- data.frame(Gene=GABA_markers, thresh=c(1,15,15,1.5,5))
+for(c in Thirst2_celltypes){if(c@project.name=="GABA"){GABA_object <- c; Idents(GABA_object) <- GABA_object$merged_clusters}}
+GABA_markers_table <- as.data.frame(GABA_object@assays$RNA@data[GABA_markers,]) %>% rownames_to_column("Gene") %>% gather(Cells, Values, -Gene) %>% mutate(Gene=factor(Gene, levels=unique(Gene)))
+GABA_markers_avex <- AverageExpression(GABA_object, assays="RNA", features=GABA_markers)$RNA %>% rownames_to_column("Gene") %>% gather(Clusters, Avex, -Gene)
+GABA_markers_avex %>% arrange(Gene, Avex) %>% unite("gene_clusters", Gene, Clusters, sep = "_", remove = FALSE) %>% mutate(gene_clusters=factor(gene_clusters, levels=gene_clusters), Gene=factor(Gene, levels=GABA_markers)) %>% ggplot(aes(x=gene_clusters,y=Avex)) + geom_point(size=.2) + facet_wrap(~Gene, scales="free") + theme(strip.text=element_text(face="italic"), axis.ticks.x=element_blank(), axis.text.x = element_blank()) + labs(x="Clusters", y="Average expression") + coord_cartesian(clip = "off") + geom_hline(data=GABA_thresholds, aes(yintercept=thresh), color="darkred")
+```
+
+``` {r}
+Idents(GABA_object) <- GABA_object$merged_clusters
+GABA_object$ann_clusters_sub <- as.character(Idents(GABA_object))
+for(i in unique(GABA_object$ann_clusters_sub)){
+  if(min(GABA_markers_avex[GABA_markers_avex$Clusters==i & GABA_markers_avex$Gene %in% c("cv-c", "Dh31"),]$Avex >= GABA_thresholds[GABA_thresholds$Gene %in% c("cv-c", "Dh31"),]$thresh)==1){
+    if(GABA_markers_avex[GABA_markers_avex$Clusters==i & GABA_markers_avex$Gene=="Octbeta2R",]$Avex >= GABA_thresholds[GABA_thresholds$Gene=="Octbeta2R",]$thresh){
+      if(GABA_markers_avex[GABA_markers_avex$Clusters==i & GABA_markers_avex$Gene=="5-HT7",]$Avex >= GABA_thresholds[GABA_thresholds$Gene=="5-HT7",]$thresh){
+        GABA_object$ann_clusters_sub[GABA_object$ann_clusters_sub==i] <- paste0(i, "_LF-EB")
+      } else {
+        GABA_object$ann_clusters_sub[GABA_object$ann_clusters_sub==i] <- paste0(i, "_SF-EB")
+      }
+    } else if (GABA_markers_avex[GABA_markers_avex$Clusters==i & GABA_markers_avex$Gene=="sNPF",]$Avex >= GABA_thresholds[GABA_thresholds$Gene=="sNPF",]$thresh){
+      GABA_object$ann_clusters_sub[GABA_object$ann_clusters_sub==i] <- paste0(i, "_dFB/vFB")
+    } else {
+      GABA_object$ann_clusters_sub[GABA_object$ann_clusters_sub==i] <- paste0(i, "_mFB")
+    }
+  } else {
+    GABA_object$ann_clusters_sub[GABA_object$ann_clusters_sub==i] <- paste0(i, "_GABA")
+  }
+}
+Idents(GABA_object) <- GABA_object$ann_clusters_sub
+```
+
+#### 5. Kenyon Cells
+
+Markers used:  
+alpha/beta: *sNPF*, *Eip93F*  
+gamma: *sNPF*, *ab*  
+alpha’/beta’: *CG8641*
+
+``` {r}
+KC_markers <- c("sNPF", "Eip93F", "ab", "CG8641")
+KC_thresholds <- data.frame(Gene=KC_markers, thresh=c(8,10,5,7.5))
+for(c in Thirst2_celltypes){if(c@project.name=="KCs"){KC_object <- c; Idents(KC_object) <- KC_object$merged_clusters}}
+KC_markers_table <- as.data.frame(KC_object@assays$RNA@data[KC_markers,]) %>% rownames_to_column("Gene") %>% gather(Cells, Values, -Gene) %>% mutate(Gene=factor(Gene, levels=unique(Gene)))
+KC_markers_avex <- AverageExpression(KC_object, assays="RNA", features=KC_markers)$RNA %>% rownames_to_column("Gene") %>% gather(Clusters, Avex, -Gene)
+KC_markers_avex %>% arrange(Gene, Avex) %>% unite("gene_clusters", Gene, Clusters, sep = "_", remove = FALSE) %>% mutate(gene_clusters=factor(gene_clusters, levels=gene_clusters), Gene=factor(Gene, levels=KC_markers)) %>% ggplot(aes(x=gene_clusters,y=Avex)) + geom_point(size=.2) + facet_wrap(~Gene, scales="free") + theme(strip.text=element_text(face="italic"), axis.ticks.x=element_blank(), axis.text.x = element_blank()) + labs(x="Clusters", y="Average expression") + coord_cartesian(clip = "off") + geom_hline(data=KC_thresholds, aes(yintercept=thresh), color="darkred")
+```
+
+``` {r}
+Idents(KC_object) <- KC_object$merged_clusters
+KC_object$ann_clusters_sub <- as.character(Idents(KC_object))
+for(i in unique(KC_object$ann_clusters_sub)){
+  if(min(KC_markers_avex[KC_markers_avex$Clusters==i & KC_markers_avex$Gene %in% c("sNPF", "Eip93F"),]$Avex >= KC_thresholds[KC_thresholds$Gene %in% c("sNPF", "Eip93F"),]$thresh)==1){
+    KC_object$ann_clusters_sub[KC_object$ann_clusters_sub==i] <- paste0(i, "_abKCs")
+  } else if (min(KC_markers_avex[KC_markers_avex$Clusters==i & KC_markers_avex$Gene %in% c("sNPF", "ab"),]$Avex >= KC_thresholds[KC_thresholds$Gene %in% c("sNPF", "ab"),]$thresh)==1){
+    KC_object$ann_clusters_sub[KC_object$ann_clusters_sub==i] <- paste0(i, "_yKCs")
+  } else if (KC_markers_avex[KC_markers_avex$Clusters==i & KC_markers_avex$Gene=="CG8641",]$Avex >= KC_thresholds[KC_thresholds$Gene=="CG8641",]$thresh){
+    KC_object$ann_clusters_sub[KC_object$ann_clusters_sub==i] <- paste0(i, "_primeKCs")
+  } else {
+    KC_object$ann_clusters_sub[KC_object$ann_clusters_sub==i] <- paste0(i, "_KCs")
+  }
+}
+Idents(KC_object) <- KC_object$ann_clusters_sub
+```
+
+#### 6. Monoaminergic neurons
+
+Markers used:  
+Dopamine: *ple*, *DAT*  
+PAM dopaminergic neurons: *ple*, *DAT*, *Fer2*  
+Serotonin: *SerT*, *Trh*  
+Octopamine: *Tdc2*, *Tbh*  
+Tyramine: *Tdc2*, NOT *Tbh*
+
+``` {r}
+MA_markers <- c("ple", "DAT", "Fer2", "SerT", "Trh", "Tdc2", "Tbh")
+MA_thresholds <- data.frame(Gene=MA_markers, thresh=c(3,20,2,15,30,7,10))
+for(c in Thirst2_celltypes){if(c@project.name=="Monoamines"){MA_object <- c; Idents(MA_object) <- MA_object$merged_clusters}}
+MA_markers_table <- as.data.frame(MA_object@assays$RNA@data[MA_markers,]) %>% rownames_to_column("Gene") %>% gather(Cells, Values, -Gene) %>% mutate(Gene=factor(Gene, levels=unique(Gene)))
+MA_markers_avex <- AverageExpression(MA_object, assays="RNA", features=MA_markers)$RNA %>% rownames_to_column("Gene") %>% gather(Clusters, Avex, -Gene)
+MA_markers_avex %>% arrange(Gene, Avex) %>% unite("gene_clusters", Gene, Clusters, sep = "_", remove = FALSE) %>% mutate(gene_clusters=factor(gene_clusters, levels=gene_clusters), Gene=factor(Gene, levels=MA_markers)) %>% ggplot(aes(x=gene_clusters,y=Avex)) + geom_point(size=.2) + facet_wrap(~Gene, scales="free") + theme(strip.text=element_text(face="italic"), axis.ticks.x=element_blank(), axis.text.x = element_blank()) + labs(x="Clusters", y="Average expression") + coord_cartesian(clip = "off") + geom_hline(data=MA_thresholds, aes(yintercept=thresh), color="darkred")
+```
+
+``` {r}
+Idents(MA_object) <- MA_object$merged_clusters
+MA_object$ann_clusters_sub <- as.character(Idents(MA_object))
+for(i in unique(MA_object$ann_clusters_sub)){
+  if(min(MA_markers_avex[MA_markers_avex$Clusters==i & MA_markers_avex$Gene %in% c("ple", "DAT"),]$Avex >= MA_thresholds[MA_thresholds$Gene %in% c("ple", "DAT"),]$thresh)==1){
+    if(MA_markers_avex[MA_markers_avex$Clusters==i & MA_markers_avex$Gene=="Fer2",]$Avex >= MA_thresholds[MA_thresholds$Gene=="Fer2",]$thresh){
+      MA_object$ann_clusters_sub[MA_object$ann_clusters_sub==i] <- paste0(i, "_DA-PAM")
+    } else {
+      MA_object$ann_clusters_sub[MA_object$ann_clusters_sub==i] <- paste0(i, "_DA")
+    }
+  } else if (min(MA_markers_avex[MA_markers_avex$Clusters==i & MA_markers_avex$Gene %in% c("SerT", "Trh"),]$Avex >= MA_thresholds[MA_thresholds$Gene %in% c("SerT", "Trh"),]$thresh)==1){
+    MA_object$ann_clusters_sub[MA_object$ann_clusters_sub==i] <- paste0(i, "_5HT")
+  } else if (MA_markers_avex[MA_markers_avex$Clusters==i & MA_markers_avex$Gene=="Tdc2",]$Avex >= MA_thresholds[MA_thresholds$Gene=="Tdc2",]$thresh){
+    if(MA_markers_avex[MA_markers_avex$Clusters==i & MA_markers_avex$Gene=="Tbh",]$Avex >= MA_thresholds[MA_thresholds$Gene=="Tbh",]$thresh){
+      MA_object$ann_clusters_sub[MA_object$ann_clusters_sub==i] <- paste0(i, "_OA")
+    } else {
+      MA_object$ann_clusters_sub[MA_object$ann_clusters_sub==i] <- paste0(i, "_TA")
+    }
+  } else {
+    MA_object$ann_clusters_sub[MA_object$ann_clusters_sub==i] <- paste0(i, "_MA_Other")
+  }
+}
+Idents(MA_object) <- MA_object$ann_clusters_sub
+```
+
+#### 7. Glia
+
+Markers used:  
+Astrocytes-like: *AANAT1*  
+Astrocytes: *AANAT1*, *alrm*, *Gat*, *e*  
+Surface glia: *Tret1-1*, *Mdr65*  
+Ensheathing glia: *zyd*, *trol*  
+Cortex glia: *zyd*, *wrapper*
+
+``` {r}
+Glia_markers <- c("AANAT1", "alrm", "Gat", "e", "Tret1-1", "Mdr65", "trol", "zyd", "wrapper")
+Glia_thresholds <- data.frame(Gene=Glia_markers, thresh=c(10,50,20,2,2,3,14,5,5))
+for(c in Thirst2_celltypes){if(c@project.name=="Glia"){Glia_object <- c; Idents(Glia_object) <- Glia_object$merged_clusters}}
+Glia_markers_table <- as.data.frame(Glia_object@assays$RNA@data[Glia_markers,]) %>% rownames_to_column("Gene") %>% gather(Cells, Values, -Gene) %>% mutate(Gene=factor(Gene, levels=unique(Gene)))
+Glia_markers_avex <- AverageExpression(Glia_object, assays="RNA", features=Glia_markers)$RNA %>% rownames_to_column("Gene") %>% gather(Clusters, Avex, -Gene)
+Glia_markers_avex %>% arrange(Gene, Avex) %>% unite("gene_clusters", Gene, Clusters, sep = "_", remove = FALSE) %>% mutate(gene_clusters=factor(gene_clusters, levels=gene_clusters), Gene=factor(Gene, levels=Glia_markers)) %>% ggplot(aes(x=gene_clusters,y=Avex)) + geom_point(size=.2) + facet_wrap(~Gene, scales="free") + theme(strip.text=element_text(face="italic"), axis.ticks.x=element_blank(), axis.text.x = element_blank()) + labs(x="Clusters", y="Average expression") + coord_cartesian(clip = "off") + geom_hline(data=Glia_thresholds %>% mutate(Gene=factor(Gene, levels=Glia_markers)), aes(yintercept=thresh), color="darkred")
+```
+
+``` {r}
+Idents(Glia_object) <- Glia_object$merged_clusters
+Glia_object$ann_clusters_sub <- as.character(Idents(Glia_object))
+for(i in unique(Glia_object$ann_clusters_sub)){
+  if(Glia_markers_avex[Glia_markers_avex$Clusters==i & Glia_markers_avex$Gene=="AANAT1",]$Avex >= Glia_thresholds[Glia_thresholds$Gene=="AANAT1",]$thresh){
+    if(min(Glia_markers_avex[Glia_markers_avex$Clusters==i & Glia_markers_avex$Gene %in% c("alrm", "Gat", "e"),]$Avex >= Glia_thresholds[Glia_thresholds$Gene %in% c("alrm", "Gat", "e"),]$thresh)==1){
+      Glia_object$ann_clusters_sub[Glia_object$ann_clusters_sub==i] <- paste0(i, "_Astrocytes")
+    } else {
+      Glia_object$ann_clusters_sub[Glia_object$ann_clusters_sub==i] <- paste0(i, "_Astrocytes-like")
+    }
+  } else if (min(Glia_markers_avex[Glia_markers_avex$Clusters==i & Glia_markers_avex$Gene %in% c("Tret1-1", "Mdr65"),]$Avex >= Glia_thresholds[Glia_thresholds$Gene %in% c("Tret1-1", "Mdr65"),]$thresh)==1){
+    Glia_object$ann_clusters_sub[Glia_object$ann_clusters_sub==i] <- paste0(i, "_SurfaceGlia")
+  } else if (Glia_markers_avex[Glia_markers_avex$Clusters==i & Glia_markers_avex$Gene=="zyd",]$Avex >= Glia_thresholds[Glia_thresholds$Gene=="zyd",]$thresh & Glia_markers_avex[Glia_markers_avex$Clusters==i & Glia_markers_avex$Gene=="wrapper",]$Avex >= Glia_thresholds[Glia_thresholds$Gene=="wrapper",]$thresh){
+    Glia_object$ann_clusters_sub[Glia_object$ann_clusters_sub==i] <- paste0(i, "_CortexGlia")
+  } else if (Glia_markers_avex[Glia_markers_avex$Clusters==i & Glia_markers_avex$Gene=="zyd",]$Avex >= Glia_thresholds[Glia_thresholds$Gene=="zyd",]$thresh & Glia_markers_avex[Glia_markers_avex$Clusters==i & Glia_markers_avex$Gene=="trol",]$Avex >= Glia_thresholds[Glia_thresholds$Gene=="trol",]$thresh){
+    Glia_object$ann_clusters_sub[Glia_object$ann_clusters_sub==i] <- paste0(i, "_EnsheathingGlia")
+  } else {
+    Glia_object$ann_clusters_sub[Glia_object$ann_clusters_sub==i] <- paste0(i, "_GliaOther")
+  }
+}
+Idents(Glia_object) <- Glia_object$ann_clusters_sub
+```
+
+#### 8. Other cells
+
+Plotting expression of known genes.
+
+``` {r}
+for(c in Thirst2_celltypes){if(c@project.name=="Other"){Other_object <- c}}
+p1 <- FeaturePlot(Other_object, "VAChT", order=T) + NoAxes() + NoLegend() + ggtitle("VAChT") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+p2 <- FeaturePlot(Other_object, "VGlut", order=T) + NoAxes() + NoLegend() + ggtitle("VGlut") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+p3 <- FeaturePlot(Other_object, "Gad1", order=T) + NoAxes() + NoLegend() + ggtitle("Gad1") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+p4 <- FeaturePlot(Other_object, "tim", order=T) + NoAxes() + NoLegend() + ggtitle("tim") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+p5 <- FeaturePlot(Other_object, "DAT", order=T) + NoAxes() + NoLegend() + ggtitle("DAT") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+p6 <- FeaturePlot(Other_object, "Ilp2", order=T) + NoAxes() + NoLegend() + ggtitle("Ilp2") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+plot_grid(p1,p2,p3,p4,p5,p6, ncol=2, labels="AUTO")
+```
+
+Searching for markers specific to each cluster
+
+``` {r}
+other_markers <- FindAllMarkers(Other_object, min.diff.pct=.25, logfc.threshold=.5, only.pos=T)
+print(other_markers %>% group_by(cluster) %>% dplyr::slice(1:5), n=1e3)
+```
+
+Most clusters express cholinergic markers, although they often express
+markers for other cell types, which is why they were not included in the
+main cholinergic cell group.  
+Cluster 0 co-expresses cholinergic and dopaminergic markers so is named
+‘Other-ACh-DA’.  
+Cluster 2 expresses Insulin-like peptides *Ilp2* and *Ilp3* which are
+markers of Insulin Producing Cells (‘IPCs’).  
+Cluster 10 expresses members of the circadian clock, such as *Clk*,
+*cry* and *tim*.
+
+``` {r}
+Idents(Other_object) <- Other_object$merged_clusters
+Other_object$ann_clusters_sub <- as.character(Idents(Other_object))
+Other_object$ann_clusters_sub[Other_object$ann_clusters_sub==0] <- "0_Other-ACh-DA"
+Other_object$ann_clusters_sub[Other_object$ann_clusters_sub==1] <- "1_Other-ACh"
+Other_object$ann_clusters_sub[Other_object$ann_clusters_sub==2] <- "2_IPCs"
+Other_object$ann_clusters_sub[Other_object$ann_clusters_sub==3] <- "3_Other-ACh"
+Other_object$ann_clusters_sub[Other_object$ann_clusters_sub==4] <- "4_OtherNeurons"
+Other_object$ann_clusters_sub[Other_object$ann_clusters_sub==5] <- "5_Other-ACh"
+Other_object$ann_clusters_sub[Other_object$ann_clusters_sub==6] <- "6_Other-ACh"
+Other_object$ann_clusters_sub[Other_object$ann_clusters_sub==7] <- "7_Other-ACh"
+Other_object$ann_clusters_sub[Other_object$ann_clusters_sub==9] <- "9_Other-ACh"
+Other_object$ann_clusters_sub[Other_object$ann_clusters_sub==10] <- "10_ClockNeurons"
+Other_object$ann_clusters_sub[Other_object$ann_clusters_sub==11] <- "11_OtherNeurons"
+Idents(Other_object) <- Other_object$ann_clusters_sub
+```
+
+#### 9. Integration into original object
+
+``` {r}
+Thirst2_SCT_trimPlus$celltype_ann <- NA
+for(o in c(ACh_object, Glut_object, GABA_object, KC_object, MA_object, Glia_object, Other_object)){
+  Thirst2_SCT_trimPlus$celltype_ann[rownames(Thirst2_SCT_trimPlus@meta.data) %in% rownames(o@meta.data)] <- o$ann_clusters_sub
+}
+Idents(Thirst2_SCT_trimPlus) <- Thirst2_SCT_trimPlus$celltype_ann
+Thirst2_SCT_trimPlus$celltype_ann <- factor(Thirst2_SCT_trimPlus$celltype_ann, levels=unique(Thirst2_SCT_trimPlus@meta.data[order(Thirst2_SCT_trimPlus$celltype),]$celltype_ann))
+```
+

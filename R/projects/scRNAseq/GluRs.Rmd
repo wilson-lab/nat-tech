@@ -35,7 +35,7 @@ knitr::opts_chunk$set(echo = FALSE,
                       include = TRUE,
                       message = FALSE,
                       warning = FALSE,
-                      fig.path='~/projects/wilson-lab/nat-tech/images/GluR_scRNA',
+                      fig.path='~/projects/wilson-lab/nat-tech/images/GluR_scRNA/',
                       dev = c('pdf', 'png'),
                       fig_caption = TRUE,
                       fig.align = 'center',
@@ -50,7 +50,7 @@ genes <- rownames(Thirst2_SCT_trimPlus)
 # Glutamate receptor associates: https://string-db.org/network/7227.FBpp0076691
 # GluRs:
 glur.correlates <- c(
-  "stg1", "PICK1","CASK","Neto" # GluR correlates
+  "stg1", "PICK1","CASK","Neto", "Rdl" # GluR correlates
 )
 glurs <- c("GluRIIC", "GluRIID", "GluRIIE", # Muscle specific 
           "GluRIIA", "GluRIIB", # Muscle specific 
@@ -122,6 +122,16 @@ thresholds <- data.frame(Gene=factor(markers, levels=markers), thresh=rep(1,leng
 markers_avex %>% dplyr::arrange(Gene, Avex) %>% tidyr::unite("gene_clusters", Gene, Clusters, sep = "_", remove = FALSE) %>% dplyr::mutate(gene_clusters=factor(gene_clusters, levels=gene_clusters), Gene=factor(Gene, levels=markers)) %>% ggplot(aes(x=gene_clusters,y=Avex)) + geom_point(size=.2) + facet_wrap(~Gene, scales="free", nrow=3) + theme(strip.text=element_text(face="italic"), axis.ticks.x=element_blank(), axis.text.x = element_blank()) + labs(x="Clusters", y="Average expression") + coord_cartesian(clip = "off") + geom_hline(data=thresholds, aes(yintercept=thresh), color="darkred")
 ```
 
+```{r celltype_ann_glur_correlates_average_expression, fig.height = 6, fig.width = 8}
+markers_avex <- Seurat::AverageExpression(Thirst2_SCT_trimPlus, assays="RNA", features=glur.correlates)$RNA %>% as.data.frame() %>% rownames_to_column("Gene") %>% dplyr::mutate(Gene = as.character(Gene)) %>% gather(Clusters, Avex, -Gene)
+thresholds <- data.frame(Gene=factor(glur.correlates, levels=glur.correlates), thresh=rep(1,length(glur.correlates)))
+markers_avex %>% dplyr::arrange(Gene, Avex) %>% tidyr::unite("gene_clusters", Gene, Clusters, sep = "_", remove = FALSE) %>% dplyr::mutate(gene_clusters=factor(gene_clusters, levels=gene_clusters), Gene=factor(Gene, levels=glur.correlates)) %>% ggplot(aes(x=gene_clusters,y=Avex)) + geom_point(size=.2) + facet_wrap(~Gene, scales="free", nrow = 3) + theme(strip.text=element_text(face="italic")) + labs(x="Clusters", y="Average expression") + coord_cartesian(clip = "off") + geom_hline(data=thresholds, aes(yintercept=thresh), color="darkred") + theme(axis.ticks.x=element_blank(), axis.text.x=element_text(size = 5, angle = 45, hjust = 1))
+```
+
+```{r celltype_ann_glur_correlates_umap, fig.height = 12, fig.width = 12}
+FeaturePlot(Thirst2_SCT_trimPlus, glur.correlates, order=T)
+```
+
 ```{r celltype_ann_glur_umap, fig.height = 12, fig.width = 12}
 FeaturePlot(Thirst2_SCT_trimPlus, glurs, order=T)
 ```
@@ -190,19 +200,19 @@ Glia.dp
 
 ``` {r glur_feature_plots, fig.height = 10, fig.width = 12}
 message(DefaultAssay(ACh_object))
-ACh.umap <- FeaturePlot(ACh_object, glurs, order=T) + NoAxes() + NoLegend() + ggtitle("ACh") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+ACh.umap <- FeaturePlot(ACh_object, glurs, order=T)
 ACh.umap
-Glut.umap <- FeaturePlot(Glut_object, glurs, order=T) + NoAxes() + NoLegend() + ggtitle("Glut") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+Glut.umap <- FeaturePlot(Glut_object, glurs, order=T)
 Glut.umap
-GABA.umap <- FeaturePlot(GABA_object, glurs, order=T) + NoAxes() + NoLegend() + ggtitle("GABA") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+GABA.umap <- FeaturePlot(GABA_object, glurs, order=T)
 GABA.umap
-Monoamines.umap <- FeaturePlot(Monoamines_object, glurs, order=T) + NoAxes() + NoLegend() + ggtitle("Monoamines") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+Monoamines.umap <- FeaturePlot(Monoamines_object, glurs, order=T)
 Monoamines.umap
-KCs.umap <- FeaturePlot(KCs_object, glurs, order=T) + NoAxes() + NoLegend() + ggtitle("KCs") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+KCs.umap <- FeaturePlot(KCs_object, glurs, order=T)
 KCs.umap
-Other.umap <- FeaturePlot(Other_object, glurs, order=T) + NoAxes() + NoLegend() + ggtitle("Other") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+Other.umap <- FeaturePlot(Other_object, glurs, order=T)
 Other.umap
-Glia.umap <- FeaturePlot(Glia_object, glurs, order=T) + NoAxes() + NoLegend() + ggtitle("Glia") + theme(plot.title=element_text(hjust=.5), panel.border=element_rect(colour="black", size=2))
+Glia.umap <- FeaturePlot(Glia_object, glurs, order=T)
 Glia.umap
 ```
 
@@ -210,7 +220,35 @@ How many neurons express more excitatory GluRs than inhibitory?
 
 ```{r glur_relative_count}
 # Quantify cell countsover given thresholds
-cells <- WhichCells(Thirst2_SCT_trimPlus, expression = Nmdar1>1)
+DefaultAssay(Thirst2_SCT_trimPlus) <- "RNA"
+total.glia <- ncol(Glia_object)
+total.cells <- ncol(Thirst2_SCT_trimPlus)
+total.neurons <- total.cells - total.glia
+glia.names <- colnames(Glia_object)
+cells.GluClalpha <- WhichCells(Thirst2_SCT_trimPlus, expression = GluClalpha>1)
+cells.GluClalpha <- length(setdiff(cells.GluClalpha,glia.names))/total.neurons
+cells.ampar <- WhichCells(Thirst2_SCT_trimPlus, expression = clumsy>1|CG11155>1)
+cells.ampar <- length(setdiff(cells.ampar,glia.names))/total.neurons
+cells.kainate <- WhichCells(Thirst2_SCT_trimPlus, expression = GluRIA>1|GluRIB>1)
+cells.kainate <- length(setdiff(cells.kainate,glia.names))/total.neurons
+cells.nmdar <- WhichCells(Thirst2_SCT_trimPlus, expression = Nmdar1>1|Nmdar2>1)
+cells.nmdar <- length(setdiff(cells.nmdar,glia.names))/total.neurons
+cells.mixed <- WhichCells(Thirst2_SCT_trimPlus, expression = GluClalpha>1 & (Nmdar1>1|Nmdar2>1|clumsy>1|CG11155>1|GluRIA>1|GluRIB>1))
+cells.mixed <- length(setdiff(cells.mixed,glia.names))/total.neurons
+cells.mglur <- WhichCells(Thirst2_SCT_trimPlus, expression = mGluR>1)
+cells.mglur <- length(setdiff(cells.mglur,glia.names))/total.neurons
+message("Proportion of neurons with a GluClalpha transcript:")
+print(cells.GluClalpha)
+message("Proportion of neurons with a Kainate receptor transcript:")
+print(cells.ampar)
+message("Proportion of neurons with a AMPA receptor transcript:")
+print(cells.kainate)
+message("Proportion of neurons with a NMDA receptor transcript:")
+print(cells.nmdar)
+message("Proportion of neurons with a GluClalpha and at least one excitatory GluR receptor transcript:")
+print(cells.mixed)
+message("Proportion of neurons with a metabotropic glutamate receptor transcript:")
+print(cells.mglur)
 ```
 
 # Speculative Central Complex
@@ -221,10 +259,95 @@ like engrailed (Kumar et al. 2009), and Ct, Dan, Dll, and Optix in type II neuro
 
 ```{r cx_markers_ump, fig.height = 12, fig.width = 14}
 # lin-28, cas
-cx.markers <- c("Imp", "Syp", "pnt",
-                "chinmo", "svp", 
+# Young et al. 2015
+typeII.markers.1 <- c("Imp", "Syp", "pnt",
+                "chinmo", "svp",
+                "mamo",
                 "br", "Eip93F",
-                "Rx", "ct", "dan", "Dll", "Optix")
-CX.umap <- FeaturePlot(Thirst2_SCT_trimPlus, cx.markers, order=T) 
-CX.umap
+                "ct", "dan", "Dll", "Optix")
+typeII.markers.2 <- c("stg","Rx",
+"pnt",
+"bsh",
+"D")
+FeaturePlot(Thirst2_SCT_trimPlus, unique(c(typeII.markers.1)), order=T) 
+FeaturePlot(Thirst2_SCT_trimPlus, unique(c(typeII.markers.2)), order=T) 
+```
+
+```{r neto_Rx, fig.height = 12, fig.width = 14}
+# Identify potential central complex neurons
+Idents(Thirst2_SCT_trimPlus) <- Thirst2_SCT_trimPlus$celltype_ann
+markers_avex <- Seurat::AverageExpression(Thirst2_SCT_trimPlus, assays="RNA", features=typeII.markers.2)$RNA %>% as.data.frame() %>% rownames_to_column("Gene") %>% dplyr::mutate(Gene = as.character(Gene)) %>% gather(Clusters, Avex, -Gene)
+thresholds <- data.frame(Gene = "Rx", thresh = 0.3) %>% tidyr::spread(Gene, thresh)
+cellgroups <- list()
+markers_values <- markers_avex %>% tidyr::spread(Gene, Avex)
+cellgroups$typeII <- markers_values %>% filter(Rx>=thresholds$Rx) %>% pull(Clusters)
+
+# Re-cluster potential central complex neurons
+Thirst2_SCT_trimPlus$cxtype <- ifelse(Thirst2_SCT_trimPlus$celltype_ann%in%cellgroups$typeII,"CX","none")
+cxtypes <- SplitObject(Thirst2_SCT_trimPlus, split.by="cxtype")
+PCs <- c(12,12)
+resolutions <- c(1,1)
+Thirst2_cxtypes <- foreach(c=cxtypes, n=names(cxtypes), p=PCs, r=resolutions) %do% {
+  c@project.name <- n
+  c <- SCTransform(c, vars.to.regress=c("orig.ident", "sex1"), verbose=FALSE)
+  c <- RunPCA(c, npcs = p)
+  c <- FindNeighbors(c, reduction = "pca", dims = 1:p)
+  c <- FindClusters(c, resolution = r, save.ssn=T)
+  c <- RunUMAP(c, reduction = "pca", dims = 1:p)
+}
+Thirst2_cxtypes <- foreach(c=Thirst2_cxtypes, p=PCs) %do% {
+  
+  # Build and process tree
+  c <- BuildClusterTree(c, dims=1:p, assay="integrated")
+  phylo_table <- as_tibble(c@tools$BuildClusterTree$edge) %>% mutate(lengths=c@tools$BuildClusterTree$edge.length, Cluster=V2-1)
+  
+  # Merge clusters
+  c$merged_clusters <- Idents(c)
+  nclust_orig <- length(levels(c))
+  lim_n_sig <- 10
+  full <- FALSE
+  clear <- c()
+  round <- 1
+  while(full==FALSE){
+    full <- TRUE
+    i <- 1
+    while(i<nrow(phylo_table)){
+      if(phylo_table[i,]$V2<=nclust_orig & phylo_table[i+1,]$V2<=nclust_orig & phylo_table[i,]$V1==phylo_table[i+1,]$V1 & !phylo_table[i,]$Cluster %in% clear){
+        markers_i <- FindMarkers(c, phylo_table[i,]$Cluster, phylo_table[i+1,]$Cluster, assay="RNA", min.pct=.25) %>% as.data.frame()
+        n_sig <- markers_i %>% rownames_to_column("Gene") %>% dplyr::filter(abs(avg_log2FC)>=1, p_val_adj<.05, !grepl("(lncRNA|tRNA|^mt:|rRNA)", Gene)) %>% dplyr::summarise(n()) %>% pull()
+        if(n_sig<lim_n_sig){
+          min_clus <- min(c(phylo_table[i,]$Cluster, phylo_table[i+1,]$Cluster))
+          other_clus <- max(c(phylo_table[i,]$Cluster, phylo_table[i+1,]$Cluster))
+          c$merged_clusters[c$merged_clusters==other_clus] <- min_clus
+          phylo_table[i-1,] <- t(c(phylo_table[i-1,]$V1, min_clus+1, sum(phylo_table[c(i,i-1),]$lengths), min_clus))
+          phylo_table <- phylo_table[-c(i,i+1),]
+          full <- FALSE
+          i=i-1
+        } else{
+          clear <- c(clear, phylo_table[i,]$Cluster, phylo_table[i+1,]$Cluster)
+        }
+      }
+      i=i+1
+    }
+    round=round+1
+  }
+  c@tools$phylo_table <- phylo_table
+  c
+}
+Thirst2_cxtypes <- foreach(c=Thirst2_cxtypes) %do% {
+  Idents(c) <- c$merged_clusters
+  c
+}
+
+# Get
+for(c in Thirst2_cxtypes){if(c@project.name=="CX"){Rx_object <- c; Idents(Rx_object) <- Rx_object$celltype_ann}}
+
+# Plot
+FeaturePlot(Rx_object, order=T) 
+
+# Plot with GluRs
+FeaturePlot(Rx_object, glurs, order=T) 
+
+# Plot with GluR correlates
+FeaturePlot(Rx_object, glur.correlates, order=T) 
 ```

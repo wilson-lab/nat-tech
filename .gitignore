@@ -69,3 +69,11 @@ Thumbs.db
 *.zip
 data/park_et_al_2022/GSE207799_Thirst2_celltypes.Robj
 data/park_et_al_2022/GSE207799_Thirst2_SCT_trimPlus.Robj
+data/croset_et_al_2018/REPLICATE8.dge.txt
+data/croset_et_al_2018/REPLICATE1.dge.txt
+data/croset_et_al_2018/REPLICATE2.dge.txt
+data/croset_et_al_2018/REPLICATE3.dge.txt
+data/croset_et_al_2018/REPLICATE4.dge.txt
+data/croset_et_al_2018/REPLICATE5.dge.txt
+data/croset_et_al_2018/REPLICATE6.dge.txt
+data/croset_et_al_2018/REPLICATE7.dge.txt
