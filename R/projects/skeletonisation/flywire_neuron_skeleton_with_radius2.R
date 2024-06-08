@@ -1,0 +1,229 @@
+# install (if necessary)
+#natmanager::install("natverse",upgrade.dependencies = TRUE)
+#natmanager::install(pkgs="fafbseg")
+#natmanager::install(pkgs="nat")
+
+# Load libraries
+library(fafbseg)
+library(hemibrainr)
+library(natverse)
+library(nat.templatebrains)
+library(nat.jrcbrains)
+library(elmr)
+library(reticulate)
+
+#thisNeuron <- "AOTU019"
+thisNeuron <- "AOTU025"
+#thisNeuron <- "DNa02"
+#thisNeuron <- "DNp01"
+
+# Get registrations if you have not done so already
+#nat.jrcbrains::download_saalfeldlab_registrations()
+nat.jrcbrains::register_saalfeldlab_registrations()
+
+# Get directories
+#setwd("~/Dropbox (HMS)/Connectomics/neuron radius")
+setwd("C:/Users/wilson/Dropbox (HMS)/Connectomics/neuron radius")
+obj.dir <- file.path("data",thisNeuron,"obj","flywire")
+obj.dir.simp <- file.path(obj.dir,"simplified")
+dir.create(obj.dir, showWarnings = FALSE, recursive = TRUE)
+swc.dir <- file.path("data",thisNeuron,"swc", "flywire")
+dir.create(swc.dir, showWarnings = FALSE, recursive = TRUE)
+split.dir <- file.path("data",thisNeuron,"split", "flywire")
+dir.create(split.dir, showWarnings = FALSE, recursive = TRUE)
+synapse.dir <- file.path("data",thisNeuron,"synapses", "flywire")
+dir.create(synapse.dir, showWarnings = FALSE, recursive = TRUE)
+
+# Get meta data, if this does not work for you obtain data here: https://github.com/flyconnectome/flywire_annotations
+#ft <- fafbseg::flytable_query("select _id, root_id, root_630, supervoxel_id, proofread, status, pos_x, pos_y, pos_z, nucleus_id, soma_x, soma_y, soma_z, side, ito_lee_hemilineage, hartenstein_hemilineage, top_nt, flow, super_class, cell_class, cell_type, hemibrain_type, root_duplicated from info")
+#ft <- as.data.frame(ft)
+ft <-  read.table("data/Supplemental_file1_annotations.tsv", 
+                  header=TRUE, 
+                  sep="\t", 
+                  quote = "",
+                  colClasses=c("root_id"="character"))
+
+# Select neuron
+fw.select <- subset(ft, hemibrain_type==thisNeuron)
+#fw.select <- subset(ft, cell_type==thisNeuron)
+fw.ids <- as.character(fw.select$root_id)
+
+# Read mesh data
+# fw.meshes <- fafbseg::read_cloudvolume_meshes(fw.ids) # for some reason does not retain normals
+fafbseg::download_neuron_obj(fw.ids, save.obj = obj.dir)
+objs <- list.files(obj.dir, full.names = TRUE)
+objs <- objs[grepl("\\.obj$",objs)]
+fw.meshes <- nat::neuronlist()
+for(obj in objs){
+  message("Working on: ", obj)
+  mesh <- Morpho::obj2mesh(obj)
+  mesh <- nat::as.neuronlist(list(mesh))
+  names(mesh) <- gsub("\\.obj","",basename(obj))
+  fw.meshes <- c(fw.meshes, mesh)
+}
+
+# Transform meshes into um
+library(httr)
+fw.meshes.t <- xform_brain(fw.meshes, reference = "JRC2018F", sample = "FlyWire")
+
+# Save transformed obj file
+for(m in names(fw.meshes.t)){
+  mesh <- fw.meshes.t[[m]]
+  filename <- file.path(obj.dir,m)
+  Rvcg::vcgObjWrite(mesh = mesh, 
+                    filename = filename, 
+                    writeNormals = TRUE)
+  
+  # Simplify the mesh if you need to, to make skeletor faster and to use xyz2swc
+  # But note that the ratio argument in skeletor call already does this, same as percent here
+  filename2 <- file.path(obj.dir,'simplified',m)
+  mesh.decim <- Rvcg::vcgQEdecim(mesh = mesh, 
+                                 tarface=NULL, 
+                                 percent=0.1, # change this variable
+                                 edgeLength=NULL, 
+                                 topo=FALSE, 
+                                 quality=TRUE, 
+                                 bound=FALSE, 
+                                 optiplace=FALSE, 
+                                 scaleindi=TRUE, 
+                                 normcheck=TRUE, 
+                                 qweightFactor=100, 
+                                 qthresh=0.3,
+                                 boundweight=1, 
+                                 normalthr=pi/2, 
+                                 silent=FALSE)
+  mesh.decim <- Morpho::updateNormals(mesh.decim, angle = TRUE)
+  Rvcg::vcgObjWrite(mesh = mesh.decim, 
+                    filename = filename2, 
+                    writeNormals = TRUE)
+}
+
+# Skeletonise with radius information.
+## see ?skeletor for arguments
+## At this point you can try using instead: https://neuromorpho.org/xyz2swc/ui/
+## May need to tweak these parameters
+fw.meshes.skels <- nat::neuronlist()
+objs <- list.files(obj.dir, full.names = TRUE)
+objs <- objs[grepl("\\.obj$",objs)]
+for(obj in objs){
+  message("Working on: ", obj)
+  fw.meshes.skel<- skeletor(
+    segments = NULL,
+    obj = obj,
+    mesh3d = FALSE,
+    save.obj = NULL,
+    cloudvolume.url = getOption("fafbseg.cloudvolume.url"),
+    operator = c("umbrella", "contangent"),
+    clean = FALSE,
+    remove_disconnected = 10,
+    theta = 0.01,
+    radius = TRUE,
+    ratio = 0.1,
+    SL = 10,
+    WH0 = 2,
+    iter_lim = 4,
+    epsilon = 0.05,
+    precision = 1e-06,
+    validate = TRUE,
+    method.radii = "knn", # c("knn", "ray"),
+    method = c("wavefront"), # "vertex_clusters", "edge_collapse", "teasar", "tangent_ball"),
+    heal = TRUE,
+    heal.k = 10L,
+    heal.threshold = Inf,
+    reroot = TRUE,
+    k.soma.search = 10,
+    radius.soma.search = 2500,
+    brain = NULL,
+    n = 5,
+    n_rays = 20,
+    projection = "sphere", #c("sphere", "tangents"),
+    fallback = "knn",
+    waves = 1,
+    step_size = 2,
+    sampling_dist = 500,
+    cluster_pos = "median", #c("median", "center"),
+    shape_weight = 1,
+    sample_weight = 0.1,
+    inv_dist = 100,
+    cpu = Inf,
+    elapsed = Inf,
+  )
+  fw.meshes.skels <- c(fw.meshes.skels,fw.meshes.skel)
+}
+
+# re-root the neuron
+names(fw.meshes.skels) <- unname(unlist(nlapply(fw.meshes.skels, function(n) n$id)))
+for(i in 1:length(fw.meshes.skels)){
+  neuron <- fw.meshes.skels[[i]]
+  id <- neuron$id
+  soma <- subset(fw.select, root_id == id)[,c("soma_x","soma_y","soma_z")]*c(4,4,40)
+  soma.xyz <- xform_brain(soma, reference = "JRC2018F", sample = "FlyWire")
+  neuron <- reroot(neuron, point = unlist(c(soma.xyz)))  
+  fw.meshes.skels[[i]] <- neuron
+}
+
+# save swc
+write.neurons(nl = fw.meshes.skels,
+              dir = swc.dir,
+              files = names(fw.meshes.skels),
+              Force = TRUE,
+              format = "swc") 
+
+# check it looks okay
+nopen3d(userMatrix = structure(c(0.998503506183624, 0.028934620320797, 
+                                 -0.0464092344045639, 0, 0.0174863673746586, -0.972944557666779, 
+                                 -0.230376064777374, 0, -0.0518193989992142, 0.229219749569893, 
+                                 -0.971994340419769, 0, 0, 0, 0, 1), dim = c(4L, 4L)), zoom = 0.281241029500961, 
+        windowRect = c(38L, 47L, 1182L, 921L))
+plot3d(JRC2018F, alpha = 0.1)
+plot3d(fw.meshes.skels, lwd = 0.1)
+for(n in 1:length(fw.meshes.skels)){
+  swc <- fw.meshes.skels[[n]]$d
+  p <- nat::xyzmatrix(swc)
+  spheres3d(p, radius = swc$W, color=rainbow(2)[n])
+}
+plot3d(fw.meshes.t, alpha = 0.3)
+plotname = paste(thisNeuron,'_skeletormesh.png',sep='')
+rgl.snapshot(plotname, fmt = 'png')
+
+# Add synapses
+fw.meshes.skels.synapses <- fafbseg::flywire_neurons_add_synapses(fw.meshes.skels)
+for(i in 1:length(fw.meshes.skels.synapses)){
+  synapses <- fw.meshes.skels.synapses[[i]]$connectors
+  nat::xyzmatrix(synapses) <- xform_brain(nat::xyzmatrix(synapses), reference = "JRC2018F", sample = "FlyWire")
+  fw.meshes.skels.synapses[[i]]$connectors <- synapses
+}
+fw.meshes.skels.split <- hemibrainr::flow_centrality(fw.meshes.skels.synapses)
+clear3d()
+plot3d_split(fw.meshes.skels.split*200)
+
+# save swc
+nat::write.neurons(nl = fw.meshes.skels,
+              dir = split.dir,
+              files = names(fw.meshes.skels),
+              Force = TRUE,
+              format = "swc")
+for(i in 1:length(fw.meshes.skels)){
+  synapses = fw.meshes.skels[[i]]$connectors
+  readr::write_csv(x=synapses, file = file.path(synapse.dir,paste0(fw.meshes.skels[[i]]$id,"csv")))
+}
+
+neuron <- fw.meshes.skels.split[[1]]
+
+# basically swc file format: http://www.neuronland.org/NLMorphologyConverter/MorphologyFormats/SWC/Spec.html
+# neuron$d
+
+# Synapses:
+# neuron$connectors
+# prepost, 1 = input, 0 = output
+
+# # Read directly from a swc file
+# neuron <- read.neuron(swc_file)
+# synapses <- read_csv(csv_file)
+# neuron$connectors <- synapses
+
+
+
+
+
+
