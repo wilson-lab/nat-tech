@@ -45,18 +45,38 @@ neuron_to_hemibrain <- function(trace, cell_type){
 }
 
 #transform a hemibrain neuron into a .nrrd file
-hemibrain_to_nrrd <- function(cell_type, ref="JRC2018U", savefolder = "data", plot3D = FALSE, mesh = TRUE){
+hemibrain_to_nrrd <- function(cell_type, ref="JRC2018U", 
+                              savefolder = "data", savemaxfolder = savefolder,
+                              plot3D = FALSE, mesh = TRUE, max_projection = FALSE,
+                              overwrite = FALSE){
+  
+  # Skip?
+  if(!overwrite){
+    nrrd.file <- file.path(savefolder, sprintf("%s_%s.nrrd",cell_type,ref))
+    if(file.exists(nrrd.file)){
+      message("File alreadg exists: ", nrrd.file)
+      return(NULL)
+    }
+  }
+  if(!overwrite&max_projection){
+    max.file <- file.path(savemaxfolder, sprintf("max_projection_%s_%s.tiff",cell_type,ref))
+    if(file.exists(max.file)){
+      message("File alreadg exists: ", max.file)
+      return(NULL)
+    }
+  }
+  
   #get hemibrain neuron
   hbn.info <- neuprint_search(sprintf("type:%s.*",cell_type))
   
   #get the neuron skeletons
   message("reading hemibrain skeletons")
-  hbn_skels = neuprintr::neuprint_read_neurons(hbn.info$bodyid)
+  hbn_skels <- neuprintr::neuprint_read_neurons(hbn.info$bodyid)
   message('resampling hemibrain skeletons')
-  hbn_skels = nat::nlapply(hbn_skels, nat::resample, stepsize = 1)
+  hbn_skels <- nat::nlapply(hbn_skels, nat::resample, stepsize = 1)
   if(mesh){
     message('reading hemibrain meshes')
-    hbn_neurons = hemibrainr:::hemibrain_neuron_meshes(hbn.info$bodyid)
+    hbn_neurons <- hemibrainr:::hemibrain_neuron_meshes(hbn.info$bodyid)
     points<-rbind(nat::xyzmatrix(hbn_neurons)*(1000/8)/1000,
                   nat::xyzmatrix(hbn_skels))
     
@@ -82,17 +102,46 @@ hemibrain_to_nrrd <- function(cell_type, ref="JRC2018U", savefolder = "data", pl
   #save the hbn to a .nrrd file
   message('writing .nrrd file')
   dir.create(savefolder, showWarnings = FALSE)
-  write.nrrd(I, file.path(savefolder, sprintf("%s_%s.nrrd",cell_type,ref)))
+  write.nrrd(I, nrrd.file)
+  if(max_projection){
+    # Maximal projection in X and Y dimensions
+    max_projection <- apply(I, c(1, 2), max)
+    #write.nrrd(max_projection, file.path(savefolder, sprintf("max_projection_%s_%s.nrrd",cell_type,ref)))
+    raster::writeRaster(raster::raster(t(max_projection)), 
+                        filename = max.file, 
+                        format = "GTiff", 
+                        overwrite = overwrite)
+  }
 }
 
 
 # write flywire neuron to nrrd, sample = "FAFB14", xyzmatrix
-flywireid_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder = "data", savemaxfolder = savefolder, plot3D =TRUE, compressed = FALSE, max_projection = TRUE){
+flywireid_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", 
+                              savefolder = "data", savemaxfolder = savefolder, 
+                              plot3D =TRUE, compressed = FALSE, max_projection = TRUE,
+                              overwrite = FALSE){
+  
+  # Skip?
+  if(!overwrite){
+    nrrd.file <- file.path(savefolder, sprintf("%s_%s.nrrd",cell_type,ref))
+    if(file.exists(nrrd.file)){
+      message("File alreadg exists: ", nrrd.file)
+      return(NULL)
+    }
+  }
+  if(!overwrite&max_projection){
+    max.file <- file.path(savemaxfolder, sprintf("max_projection_%s_%s.tiff",cell_type,ref))
+    if(file.exists(max.file)){
+      message("File alreadg exists: ", max.file)
+      return(NULL)
+    }
+  }
+  
   #read in flywire ID
   flywire_neuron <- fafbseg::read_cloudvolume_meshes(flywire_id)
   
   #transform neuron into the correct template space
-  flywire.reg = nat.templatebrains::xform_brain(flywire_neuron, reference=ref, sample="FAFB14")
+  flywire.reg <- nat.templatebrains::xform_brain(flywire_neuron, reference=ref, sample="FAFB14")
   
   #plot transformed neuron
   if(plot3D){
@@ -112,13 +161,16 @@ flywireid_to_nrrd <- function(flywire_id, cell_type, ref="JRC2018U", savefolder 
   
   #save the flywire neuron as a .nrrd file
   dir.create(savefolder, showWarnings = FALSE)
-  write.nrrd(I, file.path(savefolder, sprintf("%s_%s.nrrd",cell_type,ref)))
+  write.nrrd(I, nrrd.file)
   
   if(max_projection){
     # Maximal projection in X and Y dimensions
     max_projection <- apply(I, c(1, 2), max)
     #write.nrrd(max_projection, file.path(savefolder, sprintf("max_projection_%s_%s.nrrd",cell_type,ref)))
-    raster::writeRaster(raster::raster(t(max_projection)), filename = file.path(savemaxfolder, sprintf("max_projection_%s_%s.tiff",cell_type,ref)), format = "GTiff", overwrite = TRUE)
+    raster::writeRaster(raster::raster(t(max_projection)), 
+                        filename = max.file, 
+                        format = "GTiff",
+                        overwrite = overwrite)
   }
   
 }
@@ -466,7 +518,6 @@ combine_max_projection_tifs <- function(folder1,
   return(invisible())
 }
 
-
 combine_nrrds <- function(folder1, 
                           folder2, 
                           savefolder,
@@ -510,3 +561,265 @@ combine_nrrds <- function(folder1,
   }
   return(invisible())
 }
+
+nrrd_bridge_nrrd <- function(nrrd,
+                             savefile = NULL,
+                             sample = "IS2",
+                             reference = "JRC2018U",
+                             threshold = 100,
+                             plot3D = TRUE,
+                             compress = FALSE){
+  
+  # path to sample .nrrd in IS2 space
+  nrrd <- "/Users/abates/Desktop/observations/IS2_TyrRII_no1_02_warp_m0g40c4e1e-1x16r3.nrrd"
+  if(is.null(savefile)){
+    nf <- basename(nrrd)
+    nf <- gsub(sample,"",nf)
+    save.file <- file.path(dirname(nrrd), paste0("JRC2018U_", nf))
+  }
+  array_3d <- read.im3d(nrrd)
+  points_df <- data.frame(
+    x = rep(1:dim(array_3d)[1], times = dim(array_3d)[2] * dim(array_3d)[3]),
+    y = rep(rep(1:dim(array_3d)[2], each = dim(array_3d)[1]), times = dim(array_3d)[3]),
+    z = rep(1:dim(array_3d)[3], each = dim(array_3d)[1] * dim(array_3d)[2]),
+    value = as.vector(array_3d)
+  )
+  points_df <- points_df[points_df$value>threshold,]
+  
+  # Use voxel dimensions
+  vd <- nat::voxdims(array_3d)
+  xyz <- nat::xyzmatrix(points_df)
+  xyz[, 1] = xyz[, 1] * vd[1]
+  xyz[, 2] = xyz[, 2] * vd[2]
+  xyz[, 3] = xyz[, 3] * vd[3]
+  nat::xyzmatrix(points_df) <- xyz
+  
+  # Move to JRC2018U
+  if(reference=="BANC"){
+    voxdims <- banc_voxdims()
+    ref.brain <- banc_decapitate(banc.surf, invert = TRUE)
+    points_df_JRC2018F <- transform_points_chunked(points_df,
+                                                   sample = sample,
+                                                   reference = "JRC2018F",
+                                                   chunk_size = 1000,
+                                                   parallel = TRUE)    
+    points_df <- transform_points_chunked(points_df_JRC2018F, 
+                                          sample = "JRC2018F",
+                                          reference = "BANC",
+                                          inverse=TRUE, 
+                                          chunk_size = 1000,
+                                          parallel = TRUE)
+  }else{
+    ref.brain <- get(reference)
+    voxdims <- voxdims(ref.brain)
+    points_df <- transform_points_chunked(points_df,
+                                                   sample = sample,
+                                                   reference = reference,
+                                                   chunk_size = 10000)  
+  }
+  points_df <- points_df %>%
+    dplyr::filter(!is.na(x),!is.na(y),!is.na(z))
+  
+  # Plot
+  if(plot3D){
+    points3d(xyzmatrix(points_df));plot3d(ref.brain, alpha = 0.1)
+  }
+  
+  # Make im3d, then .nrrd
+  points <- nat::xyzmatrix(points_df)
+  if(compress & reference=="JRC2018U"){
+    I <- nat::as.im3d(points, 
+                      voxdims = c(0.519,0.52,1), 
+                      origin = nat::origin(nat.flybrains::JRC2018U),
+                      BoundingBox = nat::boundingbox(nat.flybrains::JRC2018U))
+  }else{
+    points <- round(points)
+    I <- nat::as.im3d(points, 
+                      voxdims = dim(array_3d), 
+                      BoundingBox = bbx,
+                      origin = nat::origin(ref.brain))
+  }
+  bbx <- nat::boundingbox(ref.brain)
+  inds <- nat::coord2ind(coords = nat::xyzmatrix(points_df),
+                         imdims = dim(I),
+                         voxdims = voxdims(I),
+                         CheckRanges = FALSE,
+                         linear.indices = FALSE)
+  valid_points <- inds[,1] > 0 & inds[,1] <= dim(I)[1] &
+    inds[,2] > 0 & inds[,2] <= dim(I)[2] &
+    inds[,3] > 0 & inds[,3] <= bbx[3]
+  I[inds[valid_points,]] <- points_df$value[valid_points]
+
+  # Write each slice as a page in the TIFF/Nrrd
+  if(grepl("nrrd$",savefile)){
+    nat::write.nrrd(I, save.file)
+  }else{
+    volume <- I/max(I, na.rm = TRUE)
+    img <- EBImage::Image(volume)
+    EBImage::writeImage(img, save.file) 
+  }
+  
+  # return nothing
+  invisible()
+  
+}
+
+transform_points_chunked <- function(points_df, 
+                                     sample, 
+                                     reference = "JRC2018U", 
+                                     chunk_size = 10000,
+                                     parallel = FALSE,
+                                     n_workers = 6,
+                                     ...) {
+  
+  # Convert to data.table for faster operations
+  points_dt <- data.table::as.data.table(points_df)
+  if(reference=="BANC"&!sample%in%c("JRC2018F","JRCVNC2018F")){
+    stop("sample must be JRC2018F or JRCVNC2018F")
+  }
+  
+  # Get total number of points
+  total_points <- nrow(points_dt)
+  n_chunks <- ceiling(total_points / chunk_size)
+  
+  # Set up parallel processing if requested
+  if (parallel) {
+    if (is.null(n_workers)) {
+      n_workers <- max(1, parallel::detectCores() - 1)
+    }
+    cl <- parallel::makeCluster(n_workers)
+    doParallel::registerDoParallel(cl)
+    on.exit(parallel::stopCluster(cl))
+    message(sprintf("Using parallel processing with %d workers", n_workers))
+  } else {
+    foreach::registerDoSEQ()
+  }
+  
+  # Create progress bar
+  pb <- progress::progress_bar$new(
+    format = "Processing [:bar] :percent eta: :eta",
+    total = n_chunks,
+    clear = FALSE
+  )
+  
+  # Extract xyz coordinates
+  xyz <- nat::xyzmatrix(points_dt)
+  
+  # Process chunks
+  results <- foreach::foreach(i = 1:n_chunks, 
+                              .combine = 'c', 
+                              .packages = c("nat", "nat.templatebrains", "nat.jrcbrains", "data.table")) %dopar% {
+    start_idx <- ((i-1) * chunk_size) + 1
+    end_idx <- min(i * chunk_size, nrow(xyz))
+    
+    chunk_data <- xyz[start_idx:end_idx, ]
+    
+    if(reference=="BANC"){
+      chunk_result <- suppressMessages(
+        bancr::banc_to_JRC2018F(
+          x = chunk_data, 
+          ...
+        ))
+    }else{
+      chunk_result <- suppressMessages(
+        nat.templatebrains::xform_brain(
+          chunk_data,
+          sample = sample,
+          reference = reference
+        )) 
+    }
+    
+    pb$tick()
+    
+    list(data.table::as.data.table(chunk_result))
+  }
+  
+  # Combine results
+  combined_results <- data.table::rbindlist(results)
+  
+  # Update points_dt
+  if (ncol(combined_results) == 3) {
+    data.table::setnames(combined_results, c("x", "y", "z"))
+    points_dt[, c("x", "y", "z") := combined_results]
+  } else {
+    warning("Transformed data does not have exactly 3 columns. Original data not updated.")
+  }
+  
+  return(as.data.frame(points_dt))
+}
+
+# Function to process points in chunks
+banc_transform_chunked <- function(points_df, 
+                                   chunk_size = 10000,
+                                   ...) {
+  
+  # Get total number of points
+  total_points <- nrow(points_df)
+  n_chunks <- ceiling(total_points / chunk_size)
+  
+  # Create progress bar
+  pb <- progress::progress_bar$new(
+    format = "Processing [:bar] :percent eta: :eta",
+    total = n_chunks,
+    clear = FALSE
+  )
+  
+  # Initialize matrix to store results
+  xyz <- nat::xyzmatrix(points_df)
+  result_xyz <- matrix(0, nrow = nrow(xyz), ncol = ncol(xyz))
+  
+  # Process in chunks
+  for(i in 1:n_chunks) {
+    # Calculate chunk indices
+    start_idx <- ((i-1) * chunk_size) + 1
+    end_idx <- min(i * chunk_size, total_points)
+    
+    # Transform chunk
+    chunk_result <- suppressMessages(bancr::banc_to_JRC2018F(
+      xyz[start_idx:end_idx, ],
+      ...
+    ))
+    
+    # Store results
+    result_xyz[start_idx:end_idx, ] <- chunk_result
+    
+    # Update progress bar
+    pb$tick()
+  }
+  
+  # Update the points_df with transformed coordinates
+  nat::xyzmatrix(points_df) <- result_xyz
+  return(points_df)
+}
+
+
+# Function to inflate bounding box by a percentage
+inflate_bbox <- function(bbox, inflation_percent = 20) {
+  # Convert percentage to multiplier
+  multiplier <- inflation_percent / 100
+  
+  # Calculate center points
+  center_x <- (bbox[1,1] + bbox[2,1]) / 2
+  center_y <- (bbox[1,2] + bbox[2,2]) / 2
+  center_z <- (bbox[1,3] + bbox[2,3]) / 2
+  
+  # Calculate current dimensions
+  width <- bbox[2,1] - bbox[1,1]
+  height <- bbox[2,2] - bbox[1,2]
+  depth <- bbox[2,3] - bbox[1,3]
+  
+  # Calculate inflation amounts
+  inflate_x <- width * multiplier / 2
+  inflate_y <- height * multiplier / 2
+  inflate_z <- depth * multiplier / 2
+  
+  # Create new bounding box
+  new_bbox <- structure(c(
+    bbox[1,1] - inflate_x, bbox[2,1] + inflate_x,  # x coordinates
+    bbox[1,2] - inflate_y, bbox[2,2] + inflate_y,  # y coordinates
+    bbox[1,3] - inflate_z, bbox[2,3] + inflate_z   # z coordinates
+  ), dim = 2:3, class = "boundingbox")
+  
+  return(new_bbox)
+}
+
